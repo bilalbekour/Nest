@@ -407,6 +407,9 @@ git commit -m "feat: modelos, esquemas y seed de puestos/admin"
 - Create: `app/auth.py`
 - Test: `tests/conftest.py`, `tests/test_auth.py`
 
+> Infra: añadir `pytest.ini` en la raíz con `[pytest]` / `pythonpath = .` /
+> `testpaths = tests` para que `pytest` encuentre el paquete `app`.
+
 - [ ] **Step 1: Completar `app/auth.py`** (añadir JWT y dependencias; `hash_password`/`verify_password` se crearon en Task 2)
 
 ```python
