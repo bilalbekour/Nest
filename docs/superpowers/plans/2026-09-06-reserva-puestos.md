@@ -322,6 +322,15 @@ class ReservaOut(BaseModel):
 
 - [ ] **Step 3: Crear `app/seed.py`**
 
+> Dependencia: `seed.py` importa `hash_password` de `app/auth.py`, que el plan
+> crea en Task 3. Para que el seed sea ejecutable en esta task, **crear también
+> `app/auth.py` con sólamente `hash_password` y `verify_password`** (código en
+> Task 3; copiar las dos funciones aquí y dejar el resto para Task 3). No añadir
+> JWT aún.
+>
+> Además, esta task crea `app/db.py` (engine/session/SQLAlchemy) que Task 2
+> necesita: ver Task 1 Step 6 del plan.
+
 ```python
 from sqlalchemy.orm import Session
 
@@ -398,7 +407,7 @@ git commit -m "feat: modelos, esquemas y seed de puestos/admin"
 - Create: `app/auth.py`
 - Test: `tests/conftest.py`, `tests/test_auth.py`
 
-- [ ] **Step 1: Crear `app/auth.py`**
+- [ ] **Step 1: Completar `app/auth.py`** (añadir JWT y dependencias; `hash_password`/`verify_password` se crearon en Task 2)
 
 ```python
 import hashlib
