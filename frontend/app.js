@@ -13,7 +13,15 @@ function api(path, opts = {}) {
 
 function tm(hhmmss) { return (hhmmss || "").slice(0, 5); }
 function todayStr() { return new Date().toISOString().slice(0, 10); }
-function fillSelect(el, items) { el.innerHTML = items.map(i => `<option value="${i.id}">${i.nombre}</option>`).join(""); }
+function fillSelect(el, items) {
+  el.innerHTML = "";
+  for (const i of items) {
+    const opt = document.createElement("option");
+    opt.value = i.id;
+    opt.textContent = i.nombre;
+    el.appendChild(opt);
+  }
+}
 
 /* ── Login ── */
 $("login-form").onsubmit = async (e) => {
@@ -214,10 +222,14 @@ function deskEl(desk, desde, hasta) {
     el.classList.add("bg-blue-200", "border-blue-400");
     el.title = `Tu reserva · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para cancelar`;
     el.onclick = () => cancelReserva(r.id);
-  } else if (status.state === "occupied" || status.state === "mixed") {
+  } else if (status.state === "occupied") {
     const r = status.reservations[0];
     el.classList.add("bg-red-200", "border-red-400", "cursor-default");
     el.title = `Ocupado: ${r.servicio.nombre} · ${r.departamento.nombre} · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)}`;
+  } else if (status.state === "mixed") {
+    el.classList.add("bg-amber-100", "border-amber-400", "hover:bg-amber-200");
+    el.title = "Algunas posiciones libres · Clic para reservar las libres";
+    el.onclick = () => openModal(desk, status.freeIds);
   } else {
     el.classList.add("bg-emerald-100", "border-emerald-400", "hover:bg-emerald-200");
     el.onclick = () => openModal(desk);
@@ -226,13 +238,18 @@ function deskEl(desk, desde, hasta) {
 }
 
 /* ── Modal ── */
-function openModal(desk) {
+function openModal(desk, freeIds) {
   modalDesk = desk;
   $("modal-title").textContent = `Reservar · ${desk.codigos.join(" / ")}`;
   const posSelect = $("modal-puesto");
-  posSelect.innerHTML = desk.positions.map(p =>
-    `<option value="${p.id}">${p.codigo}</option>`
-  ).join("");
+  posSelect.innerHTML = "";
+  const positions = freeIds ? desk.positions.filter(p => freeIds.includes(p.id)) : desk.positions;
+  for (const p of positions) {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.codigo;
+    posSelect.appendChild(opt);
+  }
   $("modal").classList.remove("hidden");
 }
 
