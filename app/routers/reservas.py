@@ -18,17 +18,14 @@ def _load(db: Session, reserva_id: int) -> Reserva:
     ).filter(Reserva.id == reserva_id).first()
 
 
-def _reservas_activas(db: Session, puesto_id: int, fecha: date, h_ini, h_fin, excluir_id=None):
-    q = db.query(Reserva).filter(
+def _reservas_activas(db: Session, puesto_id: int, fecha: date, h_ini, h_fin):
+    return db.query(Reserva).filter(
         Reserva.puesto_id == puesto_id,
         Reserva.fecha == fecha,
         Reserva.cancelada.is_(False),
         Reserva.hora_inicio < h_fin,
         Reserva.hora_fin > h_ini,
-    )
-    if excluir_id:
-        q = q.filter(Reserva.id != excluir_id)
-    return q.first()
+    ).first()
 
 
 @router.get("/reservas", response_model=list[ReservaOut])
@@ -49,6 +46,8 @@ def create_reserva(data: ReservaCreate, db: Session = Depends(get_db), usuario=D
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "hora_fin debe ser mayor que hora_inicio")
     if not db.get(Puesto, data.puesto_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Puesto no existe")
+    # ponytail: check-then-insert sin lock; para carga alta usar
+    # SELECT ... FOR UPDATE o índice único parcial (puesto_id, fecha) WHERE NOT cancelada
     if _reservas_activas(db, data.puesto_id, data.fecha, data.hora_inicio, data.hora_fin):
         raise HTTPException(status.HTTP_409_CONFLICT, "El puesto ya está reservado en ese tramo")
     reserva = Reserva(**data.model_dump(), usuario_id=usuario.id)
