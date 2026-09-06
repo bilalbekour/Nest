@@ -50,4 +50,4 @@ def seed_all() -> None:
 
 if __name__ == "__main__":
     seed_all()
-    print("Seed completado. admin/admin123")
+    print("Seed completado. Login inicial: admin/admin123 (cambiar tras el primer acceso).")
