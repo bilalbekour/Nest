@@ -206,6 +206,7 @@ function deskEl(desk, desde, hasta) {
   const status = deskStatus(desk, desde, hasta);
   const el = document.createElement("div");
   el.className = "w-14 h-14 rounded border cursor-pointer flex flex-col items-center justify-center text-xs transition-colors";
+  el.innerHTML = `${deskSVG()}<span class="text-[9px] leading-none mt-0.5">${desk.posRange}</span>`;
   el.title = desk.codigos.join(" · ");
 
   if (status.state === "mine") {
