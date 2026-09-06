@@ -22,6 +22,13 @@ function fillSelect(el, items) {
     el.appendChild(opt);
   }
 }
+function fillHistSelect(el, items) {
+  fillSelect(el, items);
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "Todos";
+  el.prepend(all);
+}
 
 /* ── Login ── */
 $("login-form").onsubmit = async (e) => {
@@ -53,6 +60,8 @@ function enter() {
       state.departamentos = d;
       fillSelect($("modal-servicio"), s);
       fillSelect($("modal-departamento"), d);
+      fillHistSelect($("hist-servicio"), s);
+      fillHistSelect($("hist-departamento"), d);
       renderPlan();
     });
 }
@@ -68,8 +77,74 @@ function show(view) {
   ["reservar", "historico", "admin"].forEach(v => {
     $(v).classList.toggle("hidden", v !== view);
   });
-  if (view === "historico" && typeof loadHistorico === "function") loadHistorico();
+  if (view === "historico") loadHistorico();
   if (view === "admin" && typeof loadAdmin === "function") loadAdmin();
+}
+
+/* ── Histórico ── */
+function loadHistorico() {
+  const p = new URLSearchParams();
+  const set = (k, v) => { if (v) p.set(k, v); };
+  set("fecha_desde", $("hist-fecha-desde").value);
+  set("fecha_hasta", $("hist-fecha-hasta").value);
+  set("servicio_id", $("hist-servicio").value);
+  set("departamento_id", $("hist-departamento").value);
+  set("tipo", $("hist-tipo").value);
+  const qs = p.toString();
+  api(`/api/historico${qs ? "?" + qs : ""}`).then(renderHist).catch(err => alert(err.message));
+}
+
+function limpiarHistorico() {
+  $("hist-fecha-desde").value = "";
+  $("hist-fecha-hasta").value = "";
+  $("hist-servicio").value = "";
+  $("hist-departamento").value = "";
+  $("hist-tipo").value = "";
+  loadHistorico();
+}
+
+function renderHist(reservas) {
+  const body = $("hist-body");
+  body.innerHTML = "";
+  if (reservas.length === 0) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 9;
+    td.textContent = "No hay reservas";
+    td.className = "px-4 py-6 text-center text-gray-400";
+    tr.appendChild(td);
+    body.appendChild(tr);
+    return;
+  }
+  for (const r of reservas) {
+    const tr = document.createElement("tr");
+    tr.className = "border-t";
+    const vals = [
+      r.fecha,
+      r.puesto.codigo,
+      tm(r.hora_inicio),
+      tm(r.hora_fin),
+      r.tipo[0].toUpperCase() + r.tipo.slice(1),
+      r.servicio.nombre,
+      r.departamento.nombre,
+      r.usuario.nombre,
+    ];
+    for (const v of vals) {
+      const td = document.createElement("td");
+      td.className = "px-4 py-2";
+      td.textContent = v;
+      tr.appendChild(td);
+    }
+    const tdEstado = document.createElement("td");
+    tdEstado.className = "px-4 py-2";
+    const badge = document.createElement("span");
+    badge.className = "px-2 py-0.5 rounded-full text-xs " +
+      (r.cancelada ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700");
+    badge.textContent = r.cancelada ? "Cancelada" : "Activa";
+    tdEstado.appendChild(badge);
+    tr.appendChild(tdEstado);
+    body.appendChild(tr);
+  }
 }
 
 /* ── Desk grouping ── */

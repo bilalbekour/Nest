@@ -58,7 +58,53 @@
   <!-- Histórico -->
   <section id="historico" class="hidden p-4 max-w-6xl mx-auto">
     <h2 class="text-lg font-bold mb-4">Histórico</h2>
-    <p class="text-gray-400">Próximamente.</p>
+    <div class="bg-white rounded shadow p-4 mb-4 flex items-end gap-4 flex-wrap">
+      <div>
+        <label class="block text-sm font-medium mb-1">Desde</label>
+        <input id="hist-fecha-desde" type="date" class="border rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Hasta</label>
+        <input id="hist-fecha-hasta" type="date" class="border rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Servicio</label>
+        <select id="hist-servicio" class="border rounded px-3 py-2"></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Departamento</label>
+        <select id="hist-departamento" class="border rounded px-3 py-2"></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Tipo</label>
+        <select id="hist-tipo" class="border rounded px-3 py-2">
+          <option value="">Todos</option>
+          <option value="agente">Agente</option>
+          <option value="staff">Staff</option>
+          <option value="visita">Visita</option>
+        </select>
+      </div>
+      <button onclick="loadHistorico()" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">Filtrar</button>
+      <button onclick="limpiarHistorico()" class="px-4 py-2 border rounded hover:bg-gray-100">Limpiar</button>
+    </div>
+    <div class="bg-white rounded shadow overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-left text-gray-600">
+          <tr>
+            <th class="px-4 py-2 font-medium">Fecha</th>
+            <th class="px-4 py-2 font-medium">Puesto</th>
+            <th class="px-4 py-2 font-medium">Desde</th>
+            <th class="px-4 py-2 font-medium">Hasta</th>
+            <th class="px-4 py-2 font-medium">Tipo</th>
+            <th class="px-4 py-2 font-medium">Servicio</th>
+            <th class="px-4 py-2 font-medium">Departamento</th>
+            <th class="px-4 py-2 font-medium">Reservado por</th>
+            <th class="px-4 py-2 font-medium">Estado</th>
+          </tr>
+        </thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+    </div>
   </section>
 
   <!-- Admin -->
