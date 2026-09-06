@@ -100,8 +100,11 @@ function deskStatus(desk, desde, hasta) {
   state.reservas.forEach(r => {
     if (overlaps(r, desde, hasta)) resByPos[r.puesto.id] = r;
   });
+  const mine = state.reservas.filter(r =>
+    overlaps(r, desde, hasta) && r.usuario.id === state.usuario.id && desk.ids.includes(r.puesto.id));
   const occupied = desk.ids.filter(id => resByPos[id]);
   const free = desk.ids.filter(id => !resByPos[id]);
+  if (mine.length) return { state: "mine", reservations: mine, freeIds: free };
   if (occupied.length === 0) return { state: "free", reservations: [] };
   if (free.length === 0) return { state: "occupied", reservations: Object.values(resByPos) };
   return { state: "mixed", reservations: Object.values(resByPos), freeIds: free };
@@ -205,27 +208,18 @@ function deskEl(desk, desde, hasta) {
   el.className = "w-14 h-14 rounded border cursor-pointer flex flex-col items-center justify-center text-xs transition-colors";
   el.title = desk.codigos.join(" · ");
 
-  if (status.state === "occupied") {
+  if (status.state === "mine") {
+    const r = status.reservations[0];
+    el.classList.add("bg-blue-200", "border-blue-400");
+    el.title = `Tu reserva · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para cancelar`;
+    el.onclick = () => cancelReserva(r.id);
+  } else if (status.state === "occupied" || status.state === "mixed") {
     const r = status.reservations[0];
     el.classList.add("bg-red-200", "border-red-400", "cursor-default");
     el.title = `Ocupado: ${r.servicio.nombre} · ${r.departamento.nombre} · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)}`;
-    el.innerHTML = `${deskSVG()}<span class="text-[10px] mt-0.5 leading-none">${desk.posRange}</span>`;
-  } else if (status.state === "mixed") {
-    const r = status.reservations[0];
-    el.classList.add("bg-red-200", "border-red-400", "cursor-default");
-    el.title = `Ocupado: ${r.servicio.nombre} · ${r.departamento.nombre} · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)}`;
-    el.innerHTML = `${deskSVG()}<span class="text-[10px] mt-0.5 leading-none">${desk.posRange}</span>`;
   } else {
-    const selfR = status.reservations.find(r => r.usuario.id === state.usuario.id);
-    if (selfR) {
-      el.classList.add("bg-blue-200", "border-blue-400");
-      el.title = `Tu reserva · ${selfR.tipo} ${tm(selfR.hora_inicio)}-${tm(selfR.hora_fin)} · Clic para cancelar`;
-      el.onclick = () => cancelReserva(selfR.id);
-    } else {
-      el.classList.add("bg-emerald-100", "border-emerald-400", "hover:bg-emerald-200");
-      el.onclick = () => openModal(desk);
-    }
-    el.innerHTML = `${deskSVG()}<span class="text-[10px] mt-0.5 leading-none">${desk.posRange}</span>`;
+    el.classList.add("bg-emerald-100", "border-emerald-400", "hover:bg-emerald-200");
+    el.onclick = () => openModal(desk);
   }
   return el;
 }
