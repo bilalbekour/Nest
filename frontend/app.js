@@ -78,7 +78,7 @@ function show(view) {
     $(v).classList.toggle("hidden", v !== view);
   });
   if (view === "historico") loadHistorico();
-  if (view === "admin" && typeof loadAdmin === "function") loadAdmin();
+  if (view === "admin") loadAdmin();
 }
 
 /* ── Histórico ── */
@@ -144,6 +144,117 @@ function renderHist(reservas) {
     tdEstado.appendChild(badge);
     tr.appendChild(tdEstado);
     body.appendChild(tr);
+  }
+}
+
+/* ── Admin ── */
+function renderList(elId, items, emptyMsg) {
+  const ul = $(elId);
+  ul.innerHTML = "";
+  if (items.length === 0) {
+    const li = document.createElement("li");
+    li.className = "text-gray-400 py-1";
+    li.textContent = emptyMsg;
+    ul.appendChild(li);
+    return;
+  }
+  for (const i of items) {
+    const li = document.createElement("li");
+    li.className = "py-1 border-t border-gray-100 first:border-t-0";
+    li.textContent = i.nombre;
+    ul.appendChild(li);
+  }
+}
+
+function renderAdminUsuarios(usuarios) {
+  const tbody = $("admin-usuarios");
+  tbody.innerHTML = "";
+  if (usuarios.length === 0) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.textContent = "Sin usuarios";
+    td.className = "px-4 py-6 text-center text-gray-400";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+  for (const u of usuarios) {
+    const tr = document.createElement("tr");
+    tr.className = "border-t";
+    for (const v of [u.username, u.nombre, u.rol]) {
+      const td = document.createElement("td");
+      td.className = "px-4 py-2";
+      td.textContent = v;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+}
+
+function refrescarCatalogos() {
+  return Promise.all([api("/api/servicios"), api("/api/departamentos")])
+    .then(([s, d]) => {
+      state.servicios = s;
+      state.departamentos = d;
+      fillSelect($("modal-servicio"), s);
+      fillSelect($("modal-departamento"), d);
+      fillHistSelect($("hist-servicio"), s);
+      fillHistSelect($("hist-departamento"), d);
+    });
+}
+
+function loadAdmin() {
+  Promise.all([api("/api/servicios"), api("/api/departamentos"), api("/api/usuarios")])
+    .then(([s, d, u]) => {
+      renderList("admin-servicios", s, "Sin servicios");
+      renderList("admin-deptos", d, "Sin departamentos");
+      renderAdminUsuarios(u);
+    })
+    .catch(err => alert(err.message));
+}
+
+async function crearServicio() {
+  const input = $("admin-serv-nombre");
+  if (!input.value.trim()) return;
+  try {
+    await api("/api/servicios", { method: "POST", json: { nombre: input.value.trim() } });
+    input.value = "";
+    await refrescarCatalogos();
+    renderList("admin-servicios", state.servicios, "Sin servicios");
+    renderList("admin-deptos", state.departamentos, "Sin departamentos");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function crearDepartamento() {
+  const input = $("admin-dept-nombre");
+  if (!input.value.trim()) return;
+  try {
+    await api("/api/departamentos", { method: "POST", json: { nombre: input.value.trim() } });
+    input.value = "";
+    await refrescarCatalogos();
+    renderList("admin-servicios", state.servicios, "Sin servicios");
+    renderList("admin-deptos", state.departamentos, "Sin departamentos");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function crearUsuario() {
+  const u = $("admin-user-username").value.trim();
+  const p = $("admin-user-password").value;
+  const n = $("admin-user-nombre").value.trim();
+  if (!u || !p || !n) return;
+  try {
+    await api("/api/usuarios", { method: "POST", json: { username: u, password: p, nombre: n, rol: $("admin-user-rol").value } });
+    $("admin-user-username").value = "";
+    $("admin-user-password").value = "";
+    $("admin-user-nombre").value = "";
+    api("/api/usuarios").then(renderAdminUsuarios).catch(err => alert(err.message));
+  } catch (err) {
+    alert(err.message);
   }
 }
 

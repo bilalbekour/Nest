@@ -110,7 +110,61 @@
   <!-- Admin -->
   <section id="admin" class="hidden p-4 max-w-6xl mx-auto">
     <h2 class="text-lg font-bold mb-4">Administración</h2>
-    <p class="text-gray-400">Próximamente.</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white rounded shadow p-4">
+        <h3 class="font-bold mb-3">Servicios</h3>
+        <ul id="admin-servicios" class="text-sm mb-3 divide-y"></ul>
+        <div class="flex gap-2">
+          <input id="admin-serv-nombre" type="text" placeholder="Nombre del servicio"
+                 class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
+          <button onclick="crearServicio()" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">Añadir</button>
+        </div>
+      </div>
+      <div class="bg-white rounded shadow p-4">
+        <h3 class="font-bold mb-3">Departamentos</h3>
+        <ul id="admin-deptos" class="text-sm mb-3 divide-y"></ul>
+        <div class="flex gap-2">
+          <input id="admin-dept-nombre" type="text" placeholder="Nombre del departamento"
+                 class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
+          <button onclick="crearDepartamento()" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">Añadir</button>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded shadow p-4 mt-4 overflow-x-auto">
+      <h3 class="font-bold mb-3">Usuarios</h3>
+      <table class="w-full text-sm mb-4">
+        <thead class="bg-gray-50 text-left text-gray-600">
+          <tr>
+            <th class="px-4 py-2 font-medium">Usuario</th>
+            <th class="px-4 py-2 font-medium">Nombre</th>
+            <th class="px-4 py-2 font-medium">Rol</th>
+          </tr>
+        </thead>
+        <tbody id="admin-usuarios"></tbody>
+      </table>
+      <div class="flex flex-wrap items-end gap-2">
+        <div>
+          <label class="block text-sm font-medium mb-1">Username</label>
+          <input id="admin-user-username" type="text" class="border rounded px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Contraseña</label>
+          <input id="admin-user-password" type="password" class="border rounded px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Nombre</label>
+          <input id="admin-user-nombre" type="text" class="border rounded px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Rol</label>
+          <select id="admin-user-rol" class="border rounded px-3 py-2">
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button onclick="crearUsuario()" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">Crear</button>
+      </div>
+    </div>
   </section>
 
   <!-- Modal -->
