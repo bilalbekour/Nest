@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import os
 from typing import Optional
 
@@ -11,4 +12,4 @@ def hash_password(password: str, salt: Optional[bytes] = None) -> str:
 
 def verify_password(password: str, stored: str) -> bool:
     salt_hex, digest_hex = stored.split("$")
-    return hash_password(password, bytes.fromhex(salt_hex)) == stored
+    return hmac.compare_digest(hash_password(password, bytes.fromhex(salt_hex)), stored)

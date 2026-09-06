@@ -1,6 +1,6 @@
 from datetime import date, datetime, time
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Time
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Time, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -47,7 +47,7 @@ class Reserva(Base):
     __tablename__ = "reservas"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    puesto_id: Mapped[int] = mapped_column(ForeignKey("puestos.id"))
+    puesto_id: Mapped[int] = mapped_column(ForeignKey("puestos.id"), index=True)
     fecha: Mapped[date] = mapped_column(Date, index=True)
     hora_inicio: Mapped[time] = mapped_column(Time)
     hora_fin: Mapped[time] = mapped_column(Time)
@@ -56,7 +56,7 @@ class Reserva(Base):
     departamento_id: Mapped[int] = mapped_column(ForeignKey("departamentos.id"))
     usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
     cancelada: Mapped[bool] = mapped_column(Boolean, default=False)
-    creado_en: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    creado_en: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     puesto: Mapped["Puesto"] = relationship()
     servicio: Mapped["Servicio"] = relationship()
