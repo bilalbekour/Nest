@@ -21,7 +21,10 @@ def client():
 
 
 def auth_headers(client: TestClient, username="staff1", password="pass1234") -> dict:
+    admin_r = client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
+    admin_h = {"Authorization": f"Bearer {admin_r.json()['token']}"}
     client.post("/api/usuarios", json={"username": username, "password": password,
-                                       "nombre": "Staff Uno", "rol": "staff"})
+                                       "nombre": "Staff Uno", "rol": "staff"},
+                headers=admin_h)
     r = client.post("/api/auth/login", json={"username": username, "password": password})
     return {"Authorization": f"Bearer {r.json()['token']}"}
