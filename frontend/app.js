@@ -594,7 +594,7 @@ function renderPlan() {
       const hasTwoZones = zonas.length === 2;
 
       const zonasRow = document.createElement("div");
-      zonasRow.className = "flex gap-0 items-start";
+      zonasRow.className = "flex gap-0 items-start min-w-max";
 
       zonas.forEach((zona, zi) => {
         const zDesks = pDesks.filter(d => d.zona === zona);
@@ -640,12 +640,15 @@ function renderPlan() {
 
       if (!hasTwoZones) {
         const placeholder = document.createElement("div");
-        placeholder.className = "flex-1 border-2 border-dashed border-[#CBD5E1] rounded-lg flex items-center justify-center h-48 text-[#94A3B8] bg-[#F8FAFC]";
+        placeholder.className = "flex-1 min-w-[220px] border-2 border-dashed border-[#CBD5E1] rounded-lg flex items-center justify-center h-48 text-[#94A3B8] bg-[#F8FAFC]";
         placeholder.textContent = "No disponible";
         zonasRow.appendChild(placeholder);
       }
 
-      card.appendChild(zonasRow);
+      const scroll = document.createElement("div");
+      scroll.className = "overflow-x-auto";
+      scroll.appendChild(zonasRow);
+      card.appendChild(scroll);
       container.appendChild(card);
     });
   });
