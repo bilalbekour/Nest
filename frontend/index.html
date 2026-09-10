@@ -118,6 +118,42 @@
       <button onclick="renderPlan()" class="btn btn-navy">Mostrar plano</button>
     </div>
 
+    <!-- Resumen del día -->
+    <div id="resumen" class="card p-5 mb-5">
+      <div class="flex items-baseline justify-between mb-4">
+        <h3 class="font-extrabold text-base text-[#1F2937]">Resumen del día</h3>
+        <span id="resumen-sub" class="text-xs text-[#64748B]"></span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mb-5">
+        <div class="rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] p-4 text-center">
+          <div id="res-libres" class="text-3xl font-extrabold text-[#405060]">–</div>
+          <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Libres</div>
+        </div>
+        <div class="rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] p-4 text-center">
+          <div id="res-ocupados" class="text-3xl font-extrabold text-[#B4443C]">–</div>
+          <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Ocupados</div>
+        </div>
+        <div class="rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] p-4 text-center">
+          <div id="res-pct" class="text-3xl font-extrabold text-[#1F2937]">–</div>
+          <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Ocupación</div>
+        </div>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div>
+          <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-2">Por servicio</h4>
+          <div id="res-servicios" class="space-y-2.5"></div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-2">Por departamento</h4>
+          <div id="res-deptos" class="space-y-2.5"></div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-2">Por tipo</h4>
+          <div id="res-tipos" class="space-y-2.5"></div>
+        </div>
+      </div>
+    </div>
+
     <div id="plan" class="flex flex-col gap-5"></div>
 
     <div class="flex gap-5 mt-5 text-xs sub flex-wrap">

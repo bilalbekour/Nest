@@ -317,6 +317,82 @@ function deskSVG() {
   </svg>`;
 }
 
+/* ── Resumen del día ── */
+function barRow(container, nombre, n, max, color) {
+  const row = document.createElement("div");
+  const head = document.createElement("div");
+  head.className = "flex items-baseline justify-between text-[13px] mb-1";
+  const nm = document.createElement("span");
+  nm.className = "text-[#1F2937] truncate pr-2";
+  nm.textContent = nombre;
+  const ct = document.createElement("span");
+  ct.className = "font-bold text-[#405060]";
+  ct.textContent = n;
+  head.appendChild(nm);
+  head.appendChild(ct);
+  const track = document.createElement("div");
+  track.className = "h-1.5 rounded-full bg-[#EDF1F5]";
+  const fill = document.createElement("div");
+  fill.className = "h-1.5 rounded-full";
+  fill.style.width = (max > 0 ? Math.round(n / max * 100) : 0) + "%";
+  fill.style.background = color;
+  track.appendChild(fill);
+  row.appendChild(head);
+  row.appendChild(track);
+  container.appendChild(row);
+}
+
+function emptyRow(container, msg) {
+  const p = document.createElement("p");
+  p.className = "text-[13px] text-[#94A3B8]";
+  p.textContent = msg;
+  container.appendChild(p);
+}
+
+function renderResumen() {
+  const { desde, hasta } = state;
+  const resByPos = {};
+  state.reservas.forEach(r => {
+    if (overlaps(r, desde, hasta)) resByPos[r.puesto.id] = r;
+  });
+  const total = state.puestos.length;
+  const ocup = Object.keys(resByPos).length;
+  const libres = total - ocup;
+  $("res-libres").textContent = libres;
+  $("res-ocupados").textContent = ocup;
+  $("res-pct").textContent = (total > 0 ? Math.round(ocup / total * 100) : 0) + "%";
+  $("resumen-sub").textContent = `${state.fecha} · ${tm(desde)}–${tm(hasta)}`;
+
+  const byServ = {}, byDep = {};
+  const byTipo = { agente: 0, staff: 0, visita: 0 };
+  Object.values(resByPos).forEach(r => {
+    byServ[r.servicio.nombre] = (byServ[r.servicio.nombre] || 0) + 1;
+    byDep[r.departamento.nombre] = (byDep[r.departamento.nombre] || 0) + 1;
+    if (byTipo[r.tipo] !== undefined) byTipo[r.tipo]++;
+  });
+
+  const sEl = $("res-servicios");
+  sEl.innerHTML = "";
+  const sEntries = Object.entries(byServ).sort((a, b) => b[1] - a[1]);
+  if (!sEntries.length) emptyRow(sEl, "Sin reservas en este tramo");
+  const sMax = sEntries.length ? sEntries[0][1] : 0;
+  sEntries.forEach(([n, c]) => barRow(sEl, n, c, sMax, "#405060"));
+
+  const dEl = $("res-deptos");
+  dEl.innerHTML = "";
+  const dEntries = Object.entries(byDep).sort((a, b) => b[1] - a[1]);
+  if (!dEntries.length) emptyRow(dEl, "Sin reservas en este tramo");
+  const dMax = dEntries.length ? dEntries[0][1] : 0;
+  dEntries.forEach(([n, c]) => barRow(dEl, n, c, dMax, "#7C8DA0"));
+
+  const tEl = $("res-tipos");
+  tEl.innerHTML = "";
+  const tColors = { agente: "#405060", staff: "#94A3B8", visita: "#C06848" };
+  const tMax = Math.max(byTipo.agente, byTipo.staff, byTipo.visita);
+  [["Agente", byTipo.agente], ["Staff", byTipo.staff], ["Visita", byTipo.visita]]
+    .forEach(([n, c]) => barRow(tEl, n, c, tMax, tColors[n.toLowerCase()]));
+}
+
 /* ── Render plan ── */
 function renderPlan() {
   const fecha = $("fecha").value || todayStr();
@@ -330,6 +406,7 @@ function renderPlan() {
 
   api(`/api/reservas?fecha=${fecha}`).then(reservas => {
     state.reservas = reservas;
+    renderResumen();
     const allDesks = groupDesks(state.puestos);
     const plantas = [...new Set(state.puestos.map(p => p.planta))].sort((a, b) => b - a);
     const container = $("plan");
