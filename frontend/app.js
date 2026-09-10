@@ -412,19 +412,20 @@ function deskEl(desk, desde, hasta) {
   if (status.state === "mine") {
     const r = status.reservations[0];
     el.classList.add("desk-mine");
-    el.title = `Tu reserva · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para cancelar`;
-    el.onclick = () => cancelReserva(r.id);
+    el.title = `Tu reserva · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para ver y cancelar`;
+    el.onclick = () => openModal(desk, status.freeIds, desde, hasta);
   } else if (status.state === "occupied") {
     const r = status.reservations[0];
-    el.classList.add("desk-occupied", "cursor-default");
-    el.title = `Ocupado: ${r.servicio.nombre} · ${r.departamento.nombre} · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)}`;
+    el.classList.add("desk-occupied");
+    el.title = `Ocupado: ${r.servicio.nombre} · ${r.departamento.nombre} · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para ver`;
+    el.onclick = () => openModal(desk, [], desde, hasta);
   } else if (status.state === "mixed") {
     el.classList.add("desk-mixed");
-    el.title = "Algunas posiciones libres · Clic para reservar las libres";
-    el.onclick = () => openModal(desk, status.freeIds);
+    el.title = "Algunas posiciones libres · Clic para ver y reservar";
+    el.onclick = () => openModal(desk, status.freeIds, desde, hasta);
   } else {
     el.classList.add("desk-free");
-    el.onclick = () => openModal(desk);
+    el.onclick = () => openModal(desk, undefined, desde, hasta);
   }
   const fS = state.fServicio, fD = state.fDepto;
   if (fS || fD) {
@@ -441,9 +442,46 @@ function deskEl(desk, desde, hasta) {
 }
 
 /* ── Modal ── */
-function openModal(desk, freeIds) {
+function reservaEn(puestoId, desde, hasta) {
+  return state.reservas.find(r => r.puesto.id === puestoId && overlaps(r, desde, hasta));
+}
+
+function cap(s) { return s[0].toUpperCase() + s.slice(1); }
+
+function openModal(desk, freeIds, desde, hasta) {
   modalDesk = desk;
-  $("modal-title").textContent = `Reservar · ${desk.codigos.join(" / ")}`;
+  desde = desde || state.desde;
+  hasta = hasta || state.hasta;
+  const hasFree = !freeIds || freeIds.length > 0;
+  $("modal-title").textContent = `${hasFree ? "Reservar" : "Mesa"} · ${desk.codigos.join(" / ")}`;
+  const info = $("modal-info");
+  info.innerHTML = "";
+  for (const p of desk.positions) {
+    const r = reservaEn(p.id, desde, hasta);
+    const row = document.createElement("div");
+    row.className = "flex items-center justify-between gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2 text-[13px]";
+    const txt = document.createElement("span");
+    if (!r) {
+      txt.className = "text-[#64748B]";
+      txt.textContent = `${p.codigo} · Libre`;
+      row.appendChild(txt);
+    } else {
+      const own = r.usuario.id === state.usuario.id;
+      txt.className = "text-[#1F2937]";
+      txt.textContent = `${p.codigo} · ${r.servicio.nombre} · ${r.departamento.nombre} · ${cap(r.tipo)}${own ? " (tuya)" : ""}`;
+      row.appendChild(txt);
+      if (own) {
+        const b = document.createElement("button");
+        b.className = "btn btn-ghost";
+        b.style.padding = "4px 10px";
+        b.style.fontSize = "12px";
+        b.textContent = "Cancelar";
+        b.onclick = () => cancelReserva(r.id);
+        row.appendChild(b);
+      }
+    }
+    info.appendChild(row);
+  }
   const posSelect = $("modal-puesto");
   posSelect.innerHTML = "";
   const positions = freeIds ? desk.positions.filter(p => freeIds.includes(p.id)) : desk.positions;
@@ -453,6 +491,8 @@ function openModal(desk, freeIds) {
     opt.textContent = p.codigo;
     posSelect.appendChild(opt);
   }
+  $("modal-form").classList.toggle("hidden", !hasFree);
+  $("modal-save").classList.toggle("hidden", !hasFree);
   $("modal").classList.remove("hidden");
 }
 
@@ -481,6 +521,7 @@ async function cancelReserva(id) {
   if (!confirm("¿Cancelar esta reserva?")) return;
   try {
     await api(`/api/reservas/${id}/cancelar`, { method: "POST" });
+    closeModal();
     renderPlan();
   } catch (err) {
     alert(err.message);

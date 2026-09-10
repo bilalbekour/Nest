@@ -225,7 +225,9 @@
       <div class="px-6 py-4 bg-gradient-to-br from-[#2C3A46] to-[#1E293B]">
         <h3 id="modal-title" class="text-white font-bold text-base"></h3>
       </div>
-      <div class="p-6 space-y-3">
+      <div class="p-6 space-y-4">
+        <div id="modal-info" class="space-y-2"></div>
+        <div id="modal-form" class="space-y-3">
         <div>
           <label class="block text-xs font-semibold sub mb-1.5">Puesto</label>
           <select id="modal-puesto" class="inp w-full"></select>
@@ -246,10 +248,11 @@
           <label class="block text-xs font-semibold sub mb-1.5">Departamento</label>
           <select id="modal-departamento" class="inp w-full"></select>
         </div>
+        </div>
       </div>
       <div class="flex justify-end gap-2 px-6 pb-6">
         <button onclick="closeModal()" class="btn btn-ghost">Cerrar</button>
-        <button onclick="saveReserva()" class="btn btn-navy">Guardar</button>
+        <button id="modal-save" onclick="saveReserva()" class="btn btn-navy">Guardar</button>
       </div>
     </div>
   </div>
