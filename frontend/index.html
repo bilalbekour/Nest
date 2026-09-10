@@ -48,17 +48,19 @@
 
   <!-- Login -->
   <section id="login" class="flex items-center justify-center min-h-screen p-4">
-    <div class="card w-full max-w-sm overflow-hidden">
-      <div class="bg-gradient-to-br from-[#78A068] to-[#5C8A52] px-8 pt-8 pb-10 text-center">
-        <img src="/logo.png" alt="Nido" class="h-11 mx-auto rounded-lg shadow-lg">
-        <h1 class="text-white font-extrabold text-xl mt-4">Reserva de Puestos</h1>
-        <p class="text-white/85 text-sm mt-1">Elige dónde trabajas hoy</p>
+    <div class="card w-full max-w-[560px] overflow-hidden flex">
+      <div class="hidden md:flex flex-col justify-center gap-3 w-[42%] bg-gradient-to-br from-[#78A068] to-[#5C8A52] px-6 py-8 text-white">
+        <img src="/logo.png" alt="Nido" class="h-9 w-fit rounded-md shadow-lg">
+        <span class="font-extrabold text-lg tracking-tight">Nido</span>
+        <span class="text-xs text-white/85 leading-relaxed">Elige dónde trabajar hoy.<br>Reserva tu puesto por fecha y tramo.</span>
       </div>
-      <form id="login-form" class="px-7 py-6 space-y-3">
+      <form id="login-form" class="flex-1 px-8 py-8 space-y-3">
+        <img src="/logo.png" alt="Nido" class="h-8 w-fit rounded-md shadow-sm md:hidden mx-auto mb-4">
+        <h1 class="text-center text-[#405060] font-extrabold text-lg md:hidden">Nido</h1>
         <input id="login-user" type="text" placeholder="Usuario" required class="inp inp-warm w-full">
         <input id="login-pass" type="password" placeholder="Contraseña" required class="inp inp-warm w-full">
         <p id="login-error" class="text-[#B2633F] text-sm hidden"></p>
-        <button type="submit" class="btn btn-copper w-full">Entrar</button>
+        <button type="submit" class="btn btn-sage w-full">Entrar</button>
       </form>
     </div>
   </section>
