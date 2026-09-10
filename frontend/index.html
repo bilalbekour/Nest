@@ -20,8 +20,11 @@
     .btn-ghost:hover { background: #F1F5F9; }
     .card { background: #FFF; border: 1px solid #E5E7EB; border-radius: 16px; box-shadow: 0 10px 26px rgba(15,23,42,.06); }
     .sub { color: #64748B; }
-    .link-tab { color: rgba(255,255,255,.65); transition: color .15s; }
-    .link-tab:hover { color: #fff; }
+    .navbtn { display: block; font-size: 13.5px; font-weight: 600; color: rgba(255,255,255,.65); padding: 10px 14px; border-radius: 10px; transition: background .15s, color .15s; }
+    .navbtn:hover { background: rgba(255,255,255,.06); color: #fff; }
+    .mnavbtn { white-space: nowrap; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.65); padding: 7px 10px; border-radius: 8px; }
+    .mnavbtn:hover { color: #fff; }
+    .nav-active { background: rgba(255,255,255,.12) !important; color: #fff !important; }
     /* Despachos del plano */
     .desk { transition: filter .15s, transform .05s; }
     .desk:active { transform: translateY(1px); }
@@ -78,19 +81,32 @@
     </div>
   </section>
 
-  <!-- Nav -->
-  <nav id="nav" class="hidden bg-[#1E293B] px-5 py-3 flex items-center justify-between shadow-md">
-    <div class="flex items-center gap-2.5">
-      <img src="/logo.png" alt="Nido" class="h-8 rounded-md">
-    </div>
-    <div class="flex items-center gap-5">
-      <span id="nav-user" class="text-sm text-white/60"></span>
-      <button onclick="show('reservar')" class="link-tab text-sm font-semibold">Reservar</button>
-      <button onclick="show('historico')" class="link-tab text-sm font-semibold">Histórico</button>
-      <button id="btn-admin" class="link-tab text-sm font-semibold hidden" onclick="show('admin')">Admin</button>
-      <button onclick="logout()" class="text-sm font-semibold text-red-300 hover:text-red-200">Salir</button>
-    </div>
-  </nav>
+  <!-- App (sidebar + contenido) -->
+  <div id="nav" class="hidden min-h-screen md:flex bg-[#F1F5F9]">
+    <aside class="hidden md:flex w-60 shrink-0 flex-col bg-[#1E293B] px-4 py-5 gap-1">
+      <img src="/logo.png" alt="Nido" class="h-10 w-fit rounded-md mb-6">
+      <button data-nav="reservar" onclick="show('reservar')" class="navbtn w-full text-left">Reservar</button>
+      <button data-nav="historico" onclick="show('historico')" class="navbtn w-full text-left">Histórico</button>
+      <button data-nav="reporting" onclick="show('reporting')" class="navbtn w-full text-left">Reporting</button>
+      <button data-nav="admin" onclick="show('admin')" class="navbtn w-full text-left btn-admin" style="display:none">Admin</button>
+      <div class="mt-auto pt-4 border-t border-white/10 flex items-center gap-3">
+        <span id="nav-avatar" class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center font-bold text-sm text-white shrink-0">?</span>
+        <div class="min-w-0">
+          <div id="nav-user" class="text-[13px] font-semibold text-white truncate"></div>
+          <button onclick="logout()" class="text-xs text-red-300 hover:text-red-200">Salir</button>
+        </div>
+      </div>
+    </aside>
+    <div class="flex-1 min-w-0">
+      <div class="md:hidden bg-[#1E293B] px-3 py-2.5 flex items-center gap-1.5 overflow-x-auto">
+        <img src="/logo.png" alt="Nido" class="h-7 rounded shrink-0 mr-1">
+        <button data-nav="reservar" onclick="show('reservar')" class="mnavbtn">Reservar</button>
+        <button data-nav="historico" onclick="show('historico')" class="mnavbtn">Histórico</button>
+        <button data-nav="reporting" onclick="show('reporting')" class="mnavbtn">Reporting</button>
+        <button data-nav="admin" onclick="show('admin')" class="mnavbtn btn-admin" style="display:none">Admin</button>
+        <button onclick="logout()" class="mnavbtn ml-auto">Salir</button>
+      </div>
+      <main>
 
   <!-- Reservar -->
   <section id="reservar" class="hidden p-5 max-w-6xl mx-auto">
@@ -205,6 +221,95 @@
     </div>
   </section>
 
+  <!-- Reporting -->
+  <section id="reporting" class="hidden p-5 max-w-6xl mx-auto">
+    <div class="card p-5 mb-5">
+      <div class="flex items-end gap-3 flex-wrap">
+        <div><label class="block text-xs font-semibold sub mb-1.5">Desde</label><input id="rep-fecha-desde" type="date" class="inp"></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5">Hasta</label><input id="rep-fecha-hasta" type="date" class="inp"></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5">Servicio</label><select id="rep-servicio" class="inp"></select></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5">Departamento</label><select id="rep-departamento" class="inp"></select></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5">Tipo</label>
+          <select id="rep-tipo" class="inp">
+            <option value="">Todos</option>
+            <option value="agente">Agente</option>
+            <option value="staff">Staff</option>
+            <option value="visita">Visita</option>
+          </select>
+        </div>
+        <button onclick="generarInforme()" class="btn btn-navy">Generar</button>
+        <button onclick="limpiarReporting()" class="btn btn-ghost">Limpiar</button>
+      </div>
+      <p class="text-xs text-[#94A3B8] mt-3">Ocupación = puestos con al menos una reserva activa ese día. Capacidad: 210 puestos/día (70 por zona).</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+      <div class="card p-4 text-center">
+        <div id="rep-kpi-pct" class="text-3xl font-extrabold text-[#405060]">–</div>
+        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Ocupación global</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div id="rep-kpi-res" class="text-3xl font-extrabold text-[#1F2937]">–</div>
+        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Reservas activas</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div id="rep-kpi-puestos" class="text-3xl font-extrabold text-[#1F2937]">–</div>
+        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Puestos distintos</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div id="rep-kpi-dias" class="text-3xl font-extrabold text-[#1F2937]">–</div>
+        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Días analizados</div>
+      </div>
+    </div>
+    <p id="rep-sub" class="text-xs text-[#64748B] mb-5 -mt-2"></p>
+
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="card p-5">
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Ocupación por servicio</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3">Nº reservas y % del total</p>
+        <div id="rep-por-servicio" class="space-y-2.5"></div>
+      </div>
+      <div class="card p-5">
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Ocupación por departamento</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3">Nº reservas y % del total</p>
+        <div id="rep-por-depto" class="space-y-2.5"></div>
+      </div>
+      <div class="card p-5">
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Por tipo</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3">Agente · Staff · Visita</p>
+        <div id="rep-por-tipo" class="space-y-2.5"></div>
+      </div>
+      <div class="card p-5">
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Por planta y zona</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3">% sobre su capacidad (70 puestos/día)</p>
+        <div id="rep-por-zona" class="space-y-2.5"></div>
+      </div>
+      <div class="card p-5">
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Ocupación por día de semana</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3">Media de puestos ocupados</p>
+        <div id="rep-por-semana" class="space-y-2.5"></div>
+      </div>
+      <div class="card p-5">
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-3">Días con más y menos ocupación</h4>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-[11px] font-semibold text-[#B4443C] mb-2">Más ocupación</p>
+            <div id="rep-top-altos" class="space-y-2.5"></div>
+          </div>
+          <div>
+            <p class="text-[11px] font-semibold text-[#405060] mb-2">Más disponibilidad</p>
+            <div id="rep-top-bajos" class="space-y-2.5"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card p-5 md:col-span-2">
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Quién reserva</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3">Usuarios con más reservas activas</p>
+        <div id="rep-usuarios" class="space-y-2.5"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- Admin -->
   <section id="admin" class="hidden p-5 max-w-6xl mx-auto">
     <div class="grid md:grid-cols-3 gap-5">
@@ -290,6 +395,9 @@
         <button onclick="closeModal()" class="btn btn-ghost">Cerrar</button>
         <button id="modal-save" onclick="saveReserva()" class="btn btn-navy">Guardar</button>
       </div>
+    </div>
+  </div>
+      </main>
     </div>
   </div>
 

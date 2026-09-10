@@ -48,9 +48,12 @@ $("login-form").onsubmit = async (e) => {
 
 function enter() {
   $("login").classList.add("hidden");
+  document.querySelectorAll(".btn-admin").forEach(b => {
+    b.style.display = state.usuario.rol === "admin" ? "" : "none";
+  });
   $("nav").classList.remove("hidden");
+  $("nav-avatar").textContent = (state.usuario.nombre || "?")[0].toUpperCase();
   $("nav-user").textContent = `${state.usuario.nombre} (${state.usuario.rol})`;
-  if (state.usuario.rol === "admin") $("btn-admin").classList.remove("hidden");
   $("fecha").value = todayStr();
   show("reservar");
   Promise.all([api("/api/puestos"), api("/api/servicios"), api("/api/departamentos")])
@@ -64,22 +67,29 @@ function enter() {
       fillHistSelect($("hist-departamento"), d);
       fillHistSelect($("filtro-servicio"), s);
       fillHistSelect($("filtro-departamento"), d);
+      fillHistSelect($("rep-servicio"), s);
+      fillHistSelect($("rep-departamento"), d);
       renderPlan();
     });
 }
 
 function logout() {
   state.token = null; state.usuario = null;
+  closeModal();
   $("nav").classList.add("hidden");
   $("login").classList.remove("hidden");
   $("login-user").value = ""; $("login-pass").value = "";
 }
 
 function show(view) {
-  ["reservar", "historico", "admin"].forEach(v => {
+  ["reservar", "historico", "reporting", "admin"].forEach(v => {
     $(v).classList.toggle("hidden", v !== view);
   });
+  document.querySelectorAll("[data-nav]").forEach(b => {
+    b.classList.toggle("nav-active", b.dataset.nav === view);
+  });
   if (view === "historico") loadHistorico();
+  if (view === "reporting") generarInforme();
   if (view === "admin") loadAdmin();
 }
 
@@ -148,6 +158,162 @@ function renderHist(reservas) {
   }
 }
 
+/* ── Reporting ── */
+function fechaISO(d) {
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+function parseF(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d, 12);
+}
+function rangoFechas(desde, hasta) {
+  const out = [];
+  if (!desde || !hasta) return out;
+  let d = parseF(desde);
+  const h = parseF(hasta);
+  while (d <= h) { out.push(fechaISO(d)); d = new Date(d.getTime() + 86400000); }
+  return out;
+}
+const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const ORDEN_SEM = [1, 2, 3, 4, 5, 0, 6];
+
+function generarInforme() {
+  const fd = $("rep-fecha-desde").value, fh = $("rep-fecha-hasta").value;
+  if (fd && fh && fd > fh) { alert("El rango de fechas no es válido"); return; }
+  const p = new URLSearchParams();
+  const set = (k, v) => { if (v) p.set(k, v); };
+  set("fecha_desde", fd);
+  set("fecha_hasta", fh);
+  set("servicio_id", $("rep-servicio").value);
+  set("departamento_id", $("rep-departamento").value);
+  set("tipo", $("rep-tipo").value);
+  state.repDesde = fd || null;
+  state.repHasta = fh || null;
+  const qs = p.toString();
+  api(`/api/historico${qs ? "?" + qs : ""}`).then(renderInforme).catch(err => alert(err.message));
+}
+
+function limpiarReporting() {
+  $("rep-fecha-desde").value = "";
+  $("rep-fecha-hasta").value = "";
+  $("rep-servicio").value = "";
+  $("rep-departamento").value = "";
+  $("rep-tipo").value = "";
+  generarInforme();
+}
+
+function renderInforme(rs) {
+  const activas = rs.filter(r => !r.cancelada);
+  const totalPuestos = state.puestos.length;
+  const capZona = {};
+  state.puestos.forEach(p => {
+    const k = `${p.planta}|${p.zona}`;
+    capZona[k] = (capZona[k] || 0) + 1;
+  });
+  let dias = rangoFechas(state.repDesde, state.repHasta);
+  if (!dias.length) dias = [...new Set(activas.map(r => r.fecha))].sort();
+  const nDias = dias.length;
+
+  const slots = new Set();
+  const porFecha = {}, porZona = {};
+  activas.forEach(r => {
+    const k = `${r.fecha}|${r.puesto.id}`;
+    slots.add(k);
+    (porFecha[r.fecha] = porFecha[r.fecha] || new Set()).add(r.puesto.id);
+    const z = `${r.puesto.planta}|${r.puesto.zona}`;
+    (porZona[z] = porZona[z] || new Set()).add(k);
+  });
+
+  $("rep-kpi-pct").textContent = nDias && totalPuestos ? Math.round(slots.size / (totalPuestos * nDias) * 100) + "%" : "–";
+  $("rep-kpi-res").textContent = activas.length;
+  $("rep-kpi-puestos").textContent = new Set(activas.map(r => r.puesto.id)).size;
+  $("rep-kpi-dias").textContent = nDias;
+  $("rep-sub").textContent = (state.repDesde && state.repHasta)
+    ? `Periodo: ${state.repDesde} → ${state.repHasta} · solo reservas activas`
+    : "Todo el histórico · solo reservas activas";
+
+  const tot = activas.length;
+  const pct = n => (tot ? Math.round(n / tot * 100) : 0);
+  const sorted = o => Object.entries(o).sort((a, b) => b[1] - a[1]);
+  const bump = (o, k) => { o[k] = (o[k] || 0) + 1; };
+  const cS = {}, cD = {}, cU = {};
+  const cT = { agente: 0, staff: 0, visita: 0 };
+  activas.forEach(r => {
+    bump(cS, r.servicio.nombre);
+    bump(cD, r.departamento.nombre);
+    if (cT[r.tipo] !== undefined) cT[r.tipo]++;
+    bump(cU, r.usuario.nombre);
+  });
+
+  const elS = $("rep-por-servicio");
+  elS.innerHTML = "";
+  const sE = sorted(cS);
+  if (!sE.length) emptyRow(elS, "Sin datos en el periodo");
+  const sMax = sE.length ? sE[0][1] : 0;
+  sE.forEach(([n, c]) => barRow(elS, `${n} · ${pct(c)}%`, c, sMax, "#405060"));
+
+  const elD = $("rep-por-depto");
+  elD.innerHTML = "";
+  const dE = sorted(cD);
+  if (!dE.length) emptyRow(elD, "Sin datos en el periodo");
+  const dMax = dE.length ? dE[0][1] : 0;
+  dE.forEach(([n, c]) => barRow(elD, `${n} · ${pct(c)}%`, c, dMax, "#7C8DA0"));
+
+  const elT = $("rep-por-tipo");
+  elT.innerHTML = "";
+  const tC = { agente: "#405060", staff: "#94A3B8", visita: "#C06848" };
+  const tMax = Math.max(cT.agente, cT.staff, cT.visita);
+  [["Agente", cT.agente], ["Staff", cT.staff], ["Visita", cT.visita]]
+    .forEach(([n, c]) => barRow(elT, `${n} · ${pct(c)}%`, c, tMax, tC[n.toLowerCase()]));
+
+  const elZ = $("rep-por-zona");
+  elZ.innerHTML = "";
+  const zE = Object.entries(porZona).map(([k, s]) => {
+    const [pl, zo] = k.split("|");
+    const capacidad = (capZona[k] || 0) * nDias;
+    return { label: `P${pl} · ${zo === "ZI" ? "Izquierda" : "Derecha"}`, n: s.size, p: capacidad ? Math.round(s.size / capacidad * 100) : 0 };
+  }).sort((a, b) => b.p - a.p);
+  if (!zE.length) emptyRow(elZ, "Sin datos en el periodo");
+  const zMax = zE.length ? zE[0].n : 0;
+  zE.forEach(z => barRow(elZ, `${z.label} · ${z.p}%`, z.n, zMax, "#405060"));
+
+  const semSum = [0, 0, 0, 0, 0, 0, 0], semCnt = [0, 0, 0, 0, 0, 0, 0];
+  dias.forEach(f => {
+    const wd = parseF(f).getDay();
+    semSum[wd] += (porFecha[f] ? porFecha[f].size : 0);
+    semCnt[wd]++;
+  });
+  const elW = $("rep-por-semana");
+  elW.innerHTML = "";
+  const wData = ORDEN_SEM.map(wd => ({ label: DIAS[wd], avg: semCnt[wd] ? semSum[wd] / semCnt[wd] : 0 }));
+  const wMax = Math.max(1, ...wData.map(w => w.avg));
+  wData.forEach(w => {
+    const avgR = Math.round(w.avg * 10) / 10;
+    barRow(elW, `${w.label} · ${totalPuestos ? Math.round(w.avg / totalPuestos * 100) : 0}%`, avgR, wMax, "#405060");
+  });
+
+  const porDia = dias.map(f => ({ f, n: porFecha[f] ? porFecha[f].size : 0 }));
+  const altos = [...porDia].sort((a, b) => b.n - a.n).slice(0, 3);
+  const bajos = [...porDia].sort((a, b) => a.n - b.n).slice(0, 3);
+  const elA = $("rep-top-altos");
+  elA.innerHTML = "";
+  const elB = $("rep-top-bajos");
+  elB.innerHTML = "";
+  const topMax = altos.length ? altos[0].n : 0;
+  if (!porDia.length) { emptyRow(elA, "Sin datos"); emptyRow(elB, "Sin datos"); }
+  const dpct = n => (totalPuestos ? Math.round(n / totalPuestos * 100) : 0);
+  altos.forEach(d => barRow(elA, `${d.f} · ${dpct(d.n)}%`, d.n, topMax, "#B4443C"));
+  bajos.forEach(d => barRow(elB, `${d.f} · ${dpct(d.n)}%`, d.n, topMax, "#405060"));
+
+  const elU = $("rep-usuarios");
+  elU.innerHTML = "";
+  const uE = sorted(cU).slice(0, 8);
+  if (!uE.length) emptyRow(elU, "Sin datos en el periodo");
+  const uMax = uE.length ? uE[0][1] : 0;
+  uE.forEach(([n, c]) => barRow(elU, n, c, uMax, "#405060"));
+}
+
 /* ── Admin ── */
 function renderList(elId, items, emptyMsg) {
   const ul = $(elId);
@@ -204,6 +370,8 @@ function refrescarCatalogos() {
       fillHistSelect($("hist-departamento"), d);
       fillHistSelect($("filtro-servicio"), s);
       fillHistSelect($("filtro-departamento"), d);
+      fillHistSelect($("rep-servicio"), s);
+      fillHistSelect($("rep-departamento"), d);
     });
 }
 
