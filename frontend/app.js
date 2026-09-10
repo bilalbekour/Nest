@@ -874,10 +874,11 @@ function openModal(desk, freeIds, desde, hasta) {
       row.appendChild(txt);
     } else {
       const own = r.usuario.id === state.usuario.id;
+      const isAdmin = state.usuario.rol === "admin";
       txt.className = "text-[#1F2937]";
-      txt.textContent = `${p.codigo} · ${r.servicio.nombre} · ${r.departamento.nombre} · ${cap(r.tipo)}${own ? " (tuya)" : ""}`;
+      txt.textContent = `${p.codigo} · ${r.servicio.nombre} · ${r.departamento.nombre} · ${cap(r.tipo)}${own ? " (tuya)" : (isAdmin ? ` · ${r.usuario.nombre}` : "")}`;
       row.appendChild(txt);
-      if (own) {
+      if (own || isAdmin) {
         const b = document.createElement("button");
         b.className = "btn btn-ghost";
         b.style.padding = "4px 10px";
