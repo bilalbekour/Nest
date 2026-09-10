@@ -51,7 +51,9 @@ function enter() {
   document.querySelectorAll(".btn-admin").forEach(b => {
     b.style.display = state.usuario.rol === "admin" ? "" : "none";
   });
-  $("nav").classList.remove("hidden");
+  const nav = $("nav");
+  nav.classList.remove("hidden");
+  nav.style.display = "";
   $("nav-avatar").textContent = (state.usuario.nombre || "?")[0].toUpperCase();
   $("nav-user").textContent = `${state.usuario.nombre} (${state.usuario.rol})`;
   $("fecha").value = todayStr();
@@ -76,7 +78,9 @@ function enter() {
 function logout() {
   state.token = null; state.usuario = null;
   closeModal();
-  $("nav").classList.add("hidden");
+  const nav = $("nav");
+  nav.classList.add("hidden");
+  nav.style.display = "none";
   $("login").classList.remove("hidden");
   $("login-user").value = ""; $("login-pass").value = "";
 }
