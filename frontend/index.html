@@ -41,6 +41,16 @@
     .badge { border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
     .badge-ok { background: #E3E9F0; color: #405060; }
     .badge-no { background: #FBE5E5; color: #B4443C; }
+    .adm-mini { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 7px; border: 1px solid #E2E4E9; color: #405060; background: #fff; white-space: nowrap; }
+    .adm-mini:hover { background: #F1F5F9; }
+    .adm-danger { color: #B4443C; }
+    .adm-danger:hover { background: #FBE5E5; }
+    .adm-save { background: #405060; color: #fff; border-color: #405060; }
+    .adm-save:hover { background: #4B5E60; }
+    .adm-chip { font-size: 11px; font-weight: 600; padding: 5px 0; border-radius: 8px; border: 1px solid; text-align: center; }
+    .adm-chip-on { background: #EDF2F7; border-color: #405060; color: #405060; }
+    .adm-chip-on:hover { background: #DBE4EC; }
+    .adm-chip-off { background: #F1F5F9; border-color: #CBD5E1; color: #94A3B8; text-decoration: line-through; }
     .div-v { width: 0; border-left: 1px dashed #CBD5E1; }
     .plan-card { border-color: #E5E7EB; background: #FFF; }
     .th { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; color: #64748B; padding: 10px 14px; text-align: left; }
@@ -358,21 +368,9 @@
           <button onclick="crearDepartamento()" class="btn btn-navy">Añadir</button>
         </div>
       </div>
-      <!-- Usuarios -->
+      <!-- Nuevo usuario -->
       <div class="card p-5">
-        <h2 class="font-bold text-[#1F2937] mb-3">Usuarios</h2>
-        <div class="overflow-x-auto mb-3">
-          <table class="w-full">
-            <thead>
-              <tr class="text-left border-b border-[#E5E7EB]">
-                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Usuario</th>
-                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Nombre</th>
-                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5">Rol</th>
-              </tr>
-            </thead>
-            <tbody id="admin-usuarios"></tbody>
-          </table>
-        </div>
+        <h2 class="font-bold text-[#1F2937] mb-3">Nuevo usuario</h2>
         <div class="space-y-2">
           <input id="admin-user-username" type="text" placeholder="Usuario" class="inp w-full">
           <input id="admin-user-password" type="password" placeholder="Contraseña" class="inp w-full">
@@ -383,6 +381,42 @@
           </select>
           <button onclick="crearUsuario()" class="btn btn-navy w-full">Crear</button>
         </div>
+      </div>
+      <!-- Usuarios -->
+      <div class="card p-5 md:col-span-3">
+        <h2 class="font-bold text-[#1F2937] mb-3">Usuarios</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="text-left border-b border-[#E5E7EB]">
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Usuario</th>
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Nombre</th>
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Rol</th>
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="admin-usuarios"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Puestos -->
+      <div class="card p-5 md:col-span-3">
+        <div class="flex items-center gap-3 flex-wrap mb-1">
+          <h2 class="font-bold text-[#1F2937]">Puestos</h2>
+          <span id="adm-puestos-count" class="text-xs text-[#64748B]"></span>
+          <div class="ml-auto flex items-center gap-2">
+            <select id="adm-puesto-planta" class="inp" onchange="renderPuestosAdmin()">
+              <option value="2">Planta 2</option>
+              <option value="1">Planta 1</option>
+            </select>
+            <select id="adm-puesto-zona" class="inp" onchange="renderPuestosAdmin()">
+              <option value="ZI">Zona izquierda</option>
+              <option value="ZD">Zona derecha</option>
+            </select>
+          </div>
+        </div>
+        <p class="text-xs text-[#94A3B8] mb-3">Clic en un puesto para activarlo o desactivarlo del plano.</p>
+        <div id="adm-puestos-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-1.5"></div>
       </div>
     </div>
   </section>

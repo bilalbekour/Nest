@@ -23,6 +23,12 @@ class UsuarioCreate(BaseModel):
     rol: str = "staff"
 
 
+class UsuarioUpdate(BaseModel):
+    nombre: str | None = None
+    rol: str | None = None
+    password: str | None = None
+
+
 class ServicioOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -52,6 +58,10 @@ class PuestoOut(BaseModel):
     fila: int
     lado: int
     posicion: int
+    activo: bool
+
+
+class PuestoActivo(BaseModel):
     activo: bool
 
 

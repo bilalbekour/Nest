@@ -319,7 +319,15 @@ function renderInforme(rs) {
 }
 
 /* ── Admin ── */
-function renderList(elId, items, emptyMsg) {
+function miniBtn(txt, cls, fn) {
+  const b = document.createElement("button");
+  b.className = "adm-mini" + (cls ? " " + cls : "");
+  b.textContent = txt;
+  b.onclick = fn;
+  return b;
+}
+
+function renderCatalogoList(elId, items, emptyMsg, kind) {
   const ul = $(elId);
   ul.innerHTML = "";
   if (items.length === 0) {
@@ -331,19 +339,62 @@ function renderList(elId, items, emptyMsg) {
   }
   for (const i of items) {
     const li = document.createElement("li");
-    li.className = "py-1 border-t border-[#F1F5F9] first:border-t-0 text-[#1F2937]";
-    li.textContent = i.nombre;
+    li.className = "py-1.5 border-t border-[#F1F5F9] first:border-t-0 flex items-center gap-2";
+    li.dataset.cid = i.id;
+    const sp = document.createElement("span");
+    sp.className = "flex-1 text-[#1F2937]";
+    sp.textContent = i.nombre;
+    li.append(sp, miniBtn("Editar", "", () => editarCatalogo(kind, i)),
+      miniBtn("Eliminar", "adm-danger", () => eliminarCatalogo(kind, i.id)));
     ul.appendChild(li);
   }
 }
 
+function editarCatalogo(kind, item) {
+  const ul = kind === "servicios" ? $("admin-servicios") : $("admin-deptos");
+  const li = ul.querySelector(`li[data-cid="${item.id}"]`);
+  if (!li) return;
+  li.innerHTML = "";
+  const inp = document.createElement("input");
+  inp.className = "inp flex-1";
+  inp.value = item.nombre;
+  li.append(inp,
+    miniBtn("Guardar", "adm-save", () => guardarCatalogo(kind, item.id, inp.value.trim())),
+    miniBtn("Cancelar", "", () => loadAdmin()));
+  inp.focus();
+  inp.select();
+}
+
+async function guardarCatalogo(kind, id, nombre) {
+  if (!nombre) return;
+  try {
+    await api(`/api/${kind}/${id}`, { method: "PUT", json: { nombre } });
+    await refrescarCatalogos();
+    loadAdmin();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function eliminarCatalogo(kind, id) {
+  if (!confirm("¿Eliminar? No se puede si tiene reservas asociadas.")) return;
+  try {
+    await api(`/api/${kind}/${id}`, { method: "DELETE" });
+    await refrescarCatalogos();
+    loadAdmin();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 function renderAdminUsuarios(usuarios) {
+  state.adminUsuarios = usuarios;
   const tbody = $("admin-usuarios");
   tbody.innerHTML = "";
   if (usuarios.length === 0) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 3;
+    td.colSpan = 4;
     td.textContent = "Sin usuarios";
     td.className = "td text-center py-6 text-[#94A3B8]";
     tr.appendChild(td);
@@ -353,13 +404,120 @@ function renderAdminUsuarios(usuarios) {
   for (const u of usuarios) {
     const tr = document.createElement("tr");
     tr.className = "border-t border-[#E5E7EB]";
+    tr.dataset.uid = u.id;
     for (const v of [u.username, u.nombre, u.rol]) {
       const td = document.createElement("td");
       td.className = "td";
       td.textContent = v;
       tr.appendChild(td);
     }
+    const tdA = document.createElement("td");
+    tdA.className = "td whitespace-nowrap";
+    tdA.append(miniBtn("Editar", "", () => editarUsuario(u.id)),
+      document.createTextNode(" "),
+      miniBtn("Eliminar", "adm-danger", () => eliminarUsuario(u.id)));
+    tr.appendChild(tdA);
     tbody.appendChild(tr);
+  }
+}
+
+function editarUsuario(id) {
+  const u = (state.adminUsuarios || []).find(x => x.id === id);
+  const old = document.querySelector(`#admin-usuarios tr[data-uid="${id}"]`);
+  if (!u || !old) return;
+  const tr = document.createElement("tr");
+  tr.className = "border-t border-[#E5E7EB] bg-[#F8FAFC]";
+  tr.dataset.uid = id;
+  const tdU = document.createElement("td");
+  tdU.className = "td font-semibold";
+  tdU.textContent = u.username;
+  const tdN = document.createElement("td");
+  tdN.className = "td";
+  const inpN = document.createElement("input");
+  inpN.className = "inp au-nombre w-full mb-1.5";
+  inpN.value = u.nombre;
+  const inpP = document.createElement("input");
+  inpP.className = "inp au-pass w-full";
+  inpP.type = "password";
+  inpP.placeholder = "Nueva contraseña (opcional)";
+  tdN.append(inpN, inpP);
+  const tdR = document.createElement("td");
+  tdR.className = "td";
+  const sel = document.createElement("select");
+  sel.className = "inp au-rol";
+  ["staff", "admin"].forEach(r => {
+    const o = document.createElement("option");
+    o.value = r;
+    o.textContent = r === "staff" ? "Staff" : "Admin";
+    if (u.rol === r) o.selected = true;
+    sel.appendChild(o);
+  });
+  tdR.appendChild(sel);
+  const tdA = document.createElement("td");
+  tdA.className = "td whitespace-nowrap";
+  tdA.append(miniBtn("Guardar", "adm-save", () => guardarUsuario(id)),
+    document.createTextNode(" "),
+    miniBtn("Cancelar", "", () => loadAdmin()));
+  tr.append(tdU, tdN, tdR, tdA);
+  old.replaceWith(tr);
+}
+
+async function guardarUsuario(id) {
+  const row = document.querySelector(`#admin-usuarios tr[data-uid="${id}"]`);
+  if (!row) return;
+  const body = { nombre: row.querySelector(".au-nombre").value.trim(),
+                 rol: row.querySelector(".au-rol").value };
+  const pw = row.querySelector(".au-pass").value;
+  if (pw) body.password = pw;
+  if (!body.nombre) return;
+  try {
+    await api(`/api/usuarios/${id}`, { method: "PUT", json: body });
+    loadAdmin();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function eliminarUsuario(id) {
+  if (!confirm("¿Eliminar este usuario?")) return;
+  try {
+    await api(`/api/usuarios/${id}`, { method: "DELETE" });
+    loadAdmin();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function loadPuestosAdmin() {
+  api("/api/puestos?todos=true").then(ps => {
+    state.adminPuestos = ps;
+    renderPuestosAdmin();
+  }).catch(err => alert(err.message));
+}
+
+function renderPuestosAdmin() {
+  const pl = $("adm-puesto-planta").value, zo = $("adm-puesto-zona").value;
+  const list = (state.adminPuestos || []).filter(p => String(p.planta) === pl && p.zona === zo);
+  const grid = $("adm-puestos-grid");
+  grid.innerHTML = "";
+  const act = list.filter(p => p.activo).length;
+  $("adm-puestos-count").textContent = `${act}/${list.length} activos`;
+  list.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "adm-chip" + (p.activo ? " adm-chip-on" : " adm-chip-off");
+    b.title = `${p.codigo} · ${p.activo ? "Activo (clic para desactivar)" : "Inactivo (clic para activar)"}`;
+    b.textContent = `F${p.fila}-L${p.lado}-${p.posicion}`;
+    b.onclick = () => togglePuesto(p.id, !p.activo);
+    grid.appendChild(b);
+  });
+}
+
+async function togglePuesto(id, activo) {
+  try {
+    await api(`/api/puestos/${id}`, { method: "PATCH", json: { activo } });
+    loadPuestosAdmin();
+  } catch (err) {
+    alert(err.message);
   }
 }
 
@@ -380,11 +538,13 @@ function refrescarCatalogos() {
 }
 
 function loadAdmin() {
-  Promise.all([api("/api/servicios"), api("/api/departamentos"), api("/api/usuarios")])
-    .then(([s, d, u]) => {
-      renderList("admin-servicios", s, "Sin servicios");
-      renderList("admin-deptos", d, "Sin departamentos");
-      renderAdminUsuarios(u);
+  refrescarCatalogos()
+    .then(() => api("/api/usuarios"))
+    .then(users => {
+      renderCatalogoList("admin-servicios", state.servicios, "Sin servicios", "servicios");
+      renderCatalogoList("admin-deptos", state.departamentos, "Sin departamentos", "departamentos");
+      renderAdminUsuarios(users);
+      loadPuestosAdmin();
     })
     .catch(err => alert(err.message));
 }
@@ -396,8 +556,7 @@ async function crearServicio() {
     await api("/api/servicios", { method: "POST", json: { nombre: input.value.trim() } });
     input.value = "";
     await refrescarCatalogos();
-    renderList("admin-servicios", state.servicios, "Sin servicios");
-    renderList("admin-deptos", state.departamentos, "Sin departamentos");
+    loadAdmin();
   } catch (err) {
     alert(err.message);
   }
@@ -410,8 +569,7 @@ async function crearDepartamento() {
     await api("/api/departamentos", { method: "POST", json: { nombre: input.value.trim() } });
     input.value = "";
     await refrescarCatalogos();
-    renderList("admin-servicios", state.servicios, "Sin servicios");
-    renderList("admin-deptos", state.departamentos, "Sin departamentos");
+    loadAdmin();
   } catch (err) {
     alert(err.message);
   }
