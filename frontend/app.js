@@ -111,14 +111,14 @@ function renderHist(reservas) {
     const td = document.createElement("td");
     td.colSpan = 9;
     td.textContent = "No hay reservas";
-    td.className = "px-4 py-6 text-center text-gray-400";
+    td.className = "td text-center py-6 text-[#A89B7D]";
     tr.appendChild(td);
     body.appendChild(tr);
     return;
   }
   for (const r of reservas) {
     const tr = document.createElement("tr");
-    tr.className = "border-t";
+    tr.className = "border-t border-[#EDE4D3] tr-hov";
     const vals = [
       r.fecha,
       r.puesto.codigo,
@@ -131,15 +131,14 @@ function renderHist(reservas) {
     ];
     for (const v of vals) {
       const td = document.createElement("td");
-      td.className = "px-4 py-2";
+      td.className = "td";
       td.textContent = v;
       tr.appendChild(td);
     }
     const tdEstado = document.createElement("td");
-    tdEstado.className = "px-4 py-2";
+    tdEstado.className = "td";
     const badge = document.createElement("span");
-    badge.className = "px-2 py-0.5 rounded-full text-xs " +
-      (r.cancelada ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700");
+    badge.className = "badge " + (r.cancelada ? "badge-no" : "badge-ok");
     badge.textContent = r.cancelada ? "Cancelada" : "Activa";
     tdEstado.appendChild(badge);
     tr.appendChild(tdEstado);
@@ -153,14 +152,14 @@ function renderList(elId, items, emptyMsg) {
   ul.innerHTML = "";
   if (items.length === 0) {
     const li = document.createElement("li");
-    li.className = "text-gray-400 py-1";
+    li.className = "text-[#A89B7D] py-1";
     li.textContent = emptyMsg;
     ul.appendChild(li);
     return;
   }
   for (const i of items) {
     const li = document.createElement("li");
-    li.className = "py-1 border-t border-gray-100 first:border-t-0";
+    li.className = "py-1 border-t border-[#F0E9DC] first:border-t-0 text-[#405060]";
     li.textContent = i.nombre;
     ul.appendChild(li);
   }
@@ -174,17 +173,17 @@ function renderAdminUsuarios(usuarios) {
     const td = document.createElement("td");
     td.colSpan = 3;
     td.textContent = "Sin usuarios";
-    td.className = "px-4 py-6 text-center text-gray-400";
+    td.className = "td text-center py-6 text-[#A89B7D]";
     tr.appendChild(td);
     tbody.appendChild(tr);
     return;
   }
   for (const u of usuarios) {
     const tr = document.createElement("tr");
-    tr.className = "border-t";
+    tr.className = "border-t border-[#EDE4D3]";
     for (const v of [u.username, u.nombre, u.rol]) {
       const td = document.createElement("td");
-      td.className = "px-4 py-2";
+      td.className = "td";
       td.textContent = v;
       tr.appendChild(td);
     }
@@ -307,9 +306,9 @@ function deskStatus(desk, desde, hasta) {
 /* ── SVG desk ── */
 function deskSVG() {
   return `<svg viewBox="0 0 60 36" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-    <rect x="2" y="2" width="56" height="14" rx="2" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1"/>
-    <circle cx="18" cy="28" r="6" fill="#d1d5db" stroke="#9ca3af" stroke-width="1"/>
-    <circle cx="42" cy="28" r="6" fill="#d1d5db" stroke="#9ca3af" stroke-width="1"/>
+    <rect x="2" y="2" width="56" height="14" rx="2" fill="#F0E9DA" stroke="#C4B794" stroke-width="1"/>
+    <circle cx="18" cy="28" r="6" fill="#E8DFC9" stroke="#B7AE97" stroke-width="1"/>
+    <circle cx="42" cy="28" r="6" fill="#E8DFC9" stroke="#B7AE97" stroke-width="1"/>
   </svg>`;
 }
 
@@ -332,8 +331,8 @@ function renderPlan() {
     plantas.forEach(planta => {
       const pDesks = allDesks.filter(d => d.planta === planta);
       const card = document.createElement("div");
-      card.className = "bg-white rounded shadow p-4";
-      card.innerHTML = `<h3 class="font-bold text-lg mb-3">Planta ${planta}</h3>`;
+      card.className = "card plan-card p-5";
+      card.innerHTML = `<h3 class="font-extrabold text-base text-[#405060] mb-3">Planta ${planta}</h3>`;
 
       const zonas = [...new Set(pDesks.map(d => d.zona))];
       const hasTwoZones = zonas.length === 2;
@@ -347,7 +346,7 @@ function renderPlan() {
         zonaEl.className = "flex-1";
         const zonaLabel = zona === "ZI" ? "Izquierda" : "Derecha";
         const count = zDesks.reduce((s, d) => s + d.positions.length, 0);
-        zonaEl.innerHTML = `<h4 class="text-sm font-semibold mb-2 text-gray-600">Zona ${zonaLabel} (${count} puestos)</h4>`;
+        zonaEl.innerHTML = `<h4 class="text-sm font-semibold mb-2 text-[#5C8A52]">Zona ${zonaLabel} <span class="font-normal text-[#7A6F5A]">(${count} puestos)</span></h4>`;
 
         const filas = [...new Set(zDesks.map(d => d.fila))].sort((a, b) => a - b);
         filas.forEach(fila => {
@@ -356,14 +355,14 @@ function renderPlan() {
           const lado2 = fDesks.filter(d => d.lado === 2);
           const rowEl = document.createElement("div");
           rowEl.className = "flex items-center gap-1 mb-1";
-          rowEl.innerHTML = `<span class="text-xs text-gray-400 w-5 text-right">${fila}</span>`;
+          rowEl.innerHTML = `<span class="text-xs text-[#A89B7D] w-5 text-right">${fila}</span>`;
           const leftDiv = document.createElement("div");
           leftDiv.className = "flex gap-1";
           lado1.forEach(d => leftDiv.appendChild(deskEl(d, desde, hasta)));
           rowEl.appendChild(leftDiv);
           if (lado2.length > 0) {
             const aisle = document.createElement("div");
-            aisle.className = "w-px bg-gray-300 self-stretch mx-0.5";
+            aisle.className = "pasillo self-stretch mx-1";
             rowEl.appendChild(aisle);
             const rightDiv = document.createElement("div");
             rightDiv.className = "flex gap-1";
@@ -378,14 +377,14 @@ function renderPlan() {
         if (hasTwoZones && zi === 0) {
           const pasillo = document.createElement("div");
           pasillo.className = "w-8 flex flex-col items-center justify-center self-stretch pt-8";
-          pasillo.innerHTML = `<div class="w-px bg-gray-300 flex-1"></div><span class="text-xs text-gray-400 rotate-90 whitespace-nowrap my-2">PASILLO</span><div class="w-px bg-gray-300 flex-1"></div>`;
+          pasillo.innerHTML = `<div class="pasillo flex-1"></div><span class="text-[10px] text-[#A89B7D] rotate-90 whitespace-nowrap my-2 tracking-wider">PASILLO</span><div class="pasillo flex-1"></div>`;
           zonasRow.appendChild(pasillo);
         }
       });
 
       if (!hasTwoZones) {
         const placeholder = document.createElement("div");
-        placeholder.className = "flex-1 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center h-48 text-gray-400";
+        placeholder.className = "flex-1 border-2 border-dashed border-[#D9C9A8] rounded-lg flex items-center justify-center h-48 text-[#A89B7D] bg-[#FBF7EF]";
         placeholder.textContent = "No disponible";
         zonasRow.appendChild(placeholder);
       }
@@ -399,25 +398,25 @@ function renderPlan() {
 function deskEl(desk, desde, hasta) {
   const status = deskStatus(desk, desde, hasta);
   const el = document.createElement("div");
-  el.className = "w-14 h-14 rounded border cursor-pointer flex flex-col items-center justify-center text-xs transition-colors";
-  el.innerHTML = `${deskSVG()}<span class="text-[9px] leading-none mt-0.5">${desk.posRange}</span>`;
+  el.className = "desk w-14 h-14 rounded-xl border cursor-pointer flex flex-col items-center justify-center text-xs";
+  el.innerHTML = `${deskSVG()}<span class="text-[9px] leading-none mt-0.5 text-[#8A8169]">${desk.posRange}</span>`;
   el.title = desk.codigos.join(" · ");
 
   if (status.state === "mine") {
     const r = status.reservations[0];
-    el.classList.add("bg-blue-200", "border-blue-400");
+    el.classList.add("desk-mine");
     el.title = `Tu reserva · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para cancelar`;
     el.onclick = () => cancelReserva(r.id);
   } else if (status.state === "occupied") {
     const r = status.reservations[0];
-    el.classList.add("bg-red-200", "border-red-400", "cursor-default");
+    el.classList.add("desk-occupied", "cursor-default");
     el.title = `Ocupado: ${r.servicio.nombre} · ${r.departamento.nombre} · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)}`;
   } else if (status.state === "mixed") {
-    el.classList.add("bg-amber-100", "border-amber-400", "hover:bg-amber-200");
+    el.classList.add("desk-mixed");
     el.title = "Algunas posiciones libres · Clic para reservar las libres";
     el.onclick = () => openModal(desk, status.freeIds);
   } else {
-    el.classList.add("bg-emerald-100", "border-emerald-400", "hover:bg-emerald-200");
+    el.classList.add("desk-free");
     el.onclick = () => openModal(desk);
   }
   return el;

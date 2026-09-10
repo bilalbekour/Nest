@@ -3,199 +3,230 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reserva de Puestos</title>
+  <title>Nido · Reserva de Puestos</title>
+  <link rel="icon" href="/logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: #F6F1E8; }
+    .inp { border: 1px solid #EAE0CF; background: #FFF; border-radius: 10px; padding: 8px 12px; font-size: 13px; color: #405060; outline: none; transition: border-color .15s, box-shadow .15s; }
+    .inp:focus { border-color: #78A068; box-shadow: 0 0 0 3px rgba(120,160,104,.18); }
+    .inp-warm { background: #FAF6EE; }
+    .btn { border-radius: 10px; padding: 9px 16px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; transition: filter .15s, transform .05s; }
+    .btn:active { transform: translateY(1px); }
+    .btn-copper { background: linear-gradient(135deg, #C06848, #D88860); color: #fff; }
+    .btn-copper:hover { filter: brightness(1.06); }
+    .btn-sage { background: linear-gradient(135deg, #78A068, #5C8A52); color: #fff; }
+    .btn-sage:hover { filter: brightness(1.06); }
+    .btn-ghost { background: transparent; color: #7A6F5A; border: 1px solid #EAE0CF; }
+    .btn-ghost:hover { background: #FBF7EF; }
+    .card { background: #FFF; border: 1px solid #EAE0CF; border-radius: 16px; box-shadow: 0 10px 26px rgba(122,92,54,.10); }
+    .sub { color: #7A6F5A; }
+    .link-tab { color: #6B7280; transition: color .15s; }
+    .link-tab:hover { color: #405060; }
+    /* Despachos del plano */
+    .desk { transition: filter .15s, transform .05s; }
+    .desk:active { transform: translateY(1px); }
+    .desk-free { background: #FFF; border: 1px solid #A8C095; }
+    .desk-free:hover { filter: saturate(1.15); background: #F3F7EE; }
+    .desk-occupied { background: #F3D4C6; border: 1px solid #C98E74; }
+    .desk-mine { background: #CFE9DF; border: 1px solid #287080; }
+    .desk-mixed { background: #F6E3C8; border: 1px solid #D9A35E; }
+    .desk-mixed:hover { filter: saturate(1.15); }
+    .badge { border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
+    .badge-ok { background: #E3F0E2; color: #4E7A46; }
+    .badge-no { background: #F6E3D6; color: #B2633F; }
+    .pasillo { border-top: 1px dashed #D9C9A8; border-bottom: 1px dashed #D9C9A8; }
+    .plan-card { border: 1px solid #E7E2D3; background: #FCFBF7; }
+    .th { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; color: #6B6269; padding: 10px 14px; text-align: left; }
+    .td { padding: 10px 14px; font-size: 13px; color: #405060; }
+    .tr-hov:hover { background: #FBF7EF; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="min-h-screen">
 
   <!-- Login -->
-  <section id="login" class="flex items-center justify-center min-h-screen">
-    <div class="bg-white rounded-lg shadow p-8 w-full max-w-sm">
-      <h1 class="text-xl font-bold mb-6 text-center">Reserva de Puestos</h1>
-      <form id="login-form" class="space-y-4">
-        <input id="login-user" type="text" placeholder="Usuario" required
-               class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
-        <input id="login-pass" type="password" placeholder="Contraseña" required
-               class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
-        <p id="login-error" class="text-red-500 text-sm hidden"></p>
-        <button type="submit" class="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700">Entrar</button>
+  <section id="login" class="flex items-center justify-center min-h-screen p-4">
+    <div class="card w-full max-w-sm overflow-hidden">
+      <div class="bg-gradient-to-br from-[#78A068] to-[#5C8A52] px-8 pt-8 pb-10 text-center">
+        <img src="/logo.png" alt="Nido" class="h-11 mx-auto rounded-lg shadow-lg">
+        <h1 class="text-white font-extrabold text-xl mt-4">Reserva de Puestos</h1>
+        <p class="text-white/85 text-sm mt-1">Elige dónde trabajas hoy</p>
+      </div>
+      <form id="login-form" class="px-7 py-6 space-y-3">
+        <input id="login-user" type="text" placeholder="Usuario" required class="inp inp-warm w-full">
+        <input id="login-pass" type="password" placeholder="Contraseña" required class="inp inp-warm w-full">
+        <p id="login-error" class="text-[#B2633F] text-sm hidden"></p>
+        <button type="submit" class="btn btn-copper w-full">Entrar</button>
       </form>
     </div>
   </section>
 
   <!-- Nav -->
-  <nav id="nav" class="hidden bg-white shadow px-4 py-3 flex items-center justify-between">
-    <span class="font-bold text-blue-700">Nido</span>
-    <div class="flex items-center gap-4">
-      <span id="nav-user" class="text-sm text-gray-600"></span>
-      <button onclick="show('reservar')" class="nav-btn text-sm hover:text-blue-600">Reservar</button>
-      <button onclick="show('historico')" class="nav-btn text-sm hover:text-blue-600">Histórico</button>
-      <button id="btn-admin" class="nav-btn text-sm hover:text-blue-600 hidden" onclick="show('admin')">Admin</button>
-      <button onclick="logout()" class="text-sm text-red-500 hover:text-red-700">Salir</button>
+  <nav id="nav" class="hidden bg-white shadow-sm px-5 py-3 flex items-center justify-between border-b border-[#EDE4D3]">
+    <div class="flex items-center gap-2.5">
+      <img src="/logo.png" alt="Nido" class="h-8 rounded-md">
+      <span class="text-[#405060] font-extrabold text-lg tracking-tight">Nido</span>
+    </div>
+    <div class="flex items-center gap-5">
+      <span id="nav-user" class="text-sm sub"></span>
+      <button onclick="show('reservar')" class="link-tab text-sm font-semibold">Reservar</button>
+      <button onclick="show('historico')" class="link-tab text-sm font-semibold">Histórico</button>
+      <button id="btn-admin" class="link-tab text-sm font-semibold hidden" onclick="show('admin')">Admin</button>
+      <button onclick="logout()" class="text-sm font-semibold text-[#B2633F] hover:text-[#C06848]">Salir</button>
     </div>
   </nav>
 
   <!-- Reservar -->
-  <section id="reservar" class="hidden p-4 max-w-6xl mx-auto">
-    <div class="bg-white rounded shadow p-4 mb-4 flex items-end gap-4 flex-wrap">
+  <section id="reservar" class="hidden p-5 max-w-6xl mx-auto">
+    <div class="card bg-[#FBF7EF] p-4 mb-5 flex items-end gap-4 flex-wrap">
       <div>
-        <label class="block text-sm font-medium mb-1">Fecha</label>
-        <input id="fecha" type="date" class="border rounded px-3 py-2">
+        <label class="block text-xs font-semibold sub mb-1.5">Fecha</label>
+        <input id="fecha" type="date" class="inp">
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">Desde</label>
-        <input id="desde" type="time" value="08:00" class="border rounded px-3 py-2">
+        <label class="block text-xs font-semibold sub mb-1.5">Desde</label>
+        <input id="desde" type="time" value="08:00" class="inp">
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">Hasta</label>
-        <input id="hasta" type="time" value="19:00" class="border rounded px-3 py-2">
+        <label class="block text-xs font-semibold sub mb-1.5">Hasta</label>
+        <input id="hasta" type="time" value="19:00" class="inp">
       </div>
-      <button onclick="renderPlan()" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">Mostrar plano</button>
+      <button onclick="renderPlan()" class="btn btn-copper">Mostrar plano</button>
     </div>
-    <div id="plan" class="flex flex-col gap-6"></div>
+
+    <div id="plan" class="flex flex-col gap-5"></div>
+
+    <div class="flex gap-5 mt-5 text-xs sub flex-wrap">
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#A8C095] bg-white rounded"></span>Libre</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#C98E74] bg-[#F3D4C6] rounded"></span>Ocupado</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#287080] bg-[#CFE9DF] rounded"></span>Tu reserva</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#D9A35E] bg-[#F6E3C8] rounded"></span>Mixto</span>
+    </div>
   </section>
 
   <!-- Histórico -->
-  <section id="historico" class="hidden p-4 max-w-6xl mx-auto">
-    <h2 class="text-lg font-bold mb-4">Histórico</h2>
-    <div class="bg-white rounded shadow p-4 mb-4 flex items-end gap-4 flex-wrap">
-      <div>
-        <label class="block text-sm font-medium mb-1">Desde</label>
-        <input id="hist-fecha-desde" type="date" class="border rounded px-3 py-2">
+  <section id="historico" class="hidden p-5 max-w-6xl mx-auto">
+    <div class="card overflow-hidden">
+      <div class="px-5 py-4 bg-[#FBF7EF] border-b border-[#EDE4D3] flex items-end gap-3 flex-wrap">
+        <div><label class="block text-xs font-semibold sub mb-1.5">Desde</label><input id="hist-fecha-desde" type="date" class="inp"></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5">Hasta</label><input id="hist-fecha-hasta" type="date" class="inp"></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5">Servicio</label><select id="hist-servicio" class="inp"></select></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5">Departamento</label><select id="hist-departamento" class="inp"></select></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5">Tipo</label>
+          <select id="hist-tipo" class="inp">
+            <option value="">Todos</option>
+            <option value="agente">Agente</option>
+            <option value="staff">Staff</option>
+            <option value="visita">Visita</option>
+          </select>
+        </div>
+        <button onclick="loadHistorico()" class="btn btn-copper">Filtrar</button>
+        <button onclick="limpiarHistorico()" class="btn btn-ghost">Limpiar</button>
       </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Hasta</label>
-        <input id="hist-fecha-hasta" type="date" class="border rounded px-3 py-2">
+      <div class="overflow-x-auto">
+        <table id="tbl-historico" class="w-full">
+          <thead class="bg-[#F1ECE0] border-b border-[#E7DFC9]">
+            <tr>
+              <th class="th">Fecha</th>
+              <th class="th">Puesto</th>
+              <th class="th">Desde</th>
+              <th class="th">Hasta</th>
+              <th class="th">Tipo</th>
+              <th class="th">Servicio</th>
+              <th class="th">Departamento</th>
+              <th class="th">Reservado por</th>
+              <th class="th">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="hist-body"></tbody>
+        </table>
       </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Servicio</label>
-        <select id="hist-servicio" class="border rounded px-3 py-2"></select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Departamento</label>
-        <select id="hist-departamento" class="border rounded px-3 py-2"></select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Tipo</label>
-        <select id="hist-tipo" class="border rounded px-3 py-2">
-          <option value="">Todos</option>
-          <option value="agente">Agente</option>
-          <option value="staff">Staff</option>
-          <option value="visita">Visita</option>
-        </select>
-      </div>
-      <button onclick="loadHistorico()" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">Filtrar</button>
-      <button onclick="limpiarHistorico()" class="px-4 py-2 border rounded hover:bg-gray-100">Limpiar</button>
-    </div>
-    <div class="bg-white rounded shadow overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-left text-gray-600">
-          <tr>
-            <th class="px-4 py-2 font-medium">Fecha</th>
-            <th class="px-4 py-2 font-medium">Puesto</th>
-            <th class="px-4 py-2 font-medium">Desde</th>
-            <th class="px-4 py-2 font-medium">Hasta</th>
-            <th class="px-4 py-2 font-medium">Tipo</th>
-            <th class="px-4 py-2 font-medium">Servicio</th>
-            <th class="px-4 py-2 font-medium">Departamento</th>
-            <th class="px-4 py-2 font-medium">Reservado por</th>
-            <th class="px-4 py-2 font-medium">Estado</th>
-          </tr>
-        </thead>
-        <tbody id="hist-body"></tbody>
-      </table>
     </div>
   </section>
 
   <!-- Admin -->
-  <section id="admin" class="hidden p-4 max-w-6xl mx-auto">
-    <h2 class="text-lg font-bold mb-4">Administración</h2>
-    <div class="grid md:grid-cols-2 gap-4">
-      <div class="bg-white rounded shadow p-4">
-        <h3 class="font-bold mb-3">Servicios</h3>
-        <ul id="admin-servicios" class="text-sm mb-3 divide-y"></ul>
-        <div class="flex gap-2">
-          <input id="admin-serv-nombre" type="text" placeholder="Nombre del servicio"
-                 class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
-          <button onclick="crearServicio()" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">Añadir</button>
+  <section id="admin" class="hidden p-5 max-w-6xl mx-auto">
+    <div class="grid md:grid-cols-3 gap-5">
+      <!-- Servicios -->
+      <div class="card p-5">
+        <h2 class="font-bold text-[#405060] mb-3">Servicios</h2>
+        <ul id="admin-servicios" class="text-sm"></ul>
+        <div class="flex gap-2 mt-3">
+          <input id="admin-serv-nombre" type="text" placeholder="Nombre" class="inp flex-1">
+          <button onclick="crearServicio()" class="btn btn-sage">Añadir</button>
         </div>
       </div>
-      <div class="bg-white rounded shadow p-4">
-        <h3 class="font-bold mb-3">Departamentos</h3>
-        <ul id="admin-deptos" class="text-sm mb-3 divide-y"></ul>
-        <div class="flex gap-2">
-          <input id="admin-dept-nombre" type="text" placeholder="Nombre del departamento"
-                 class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
-          <button onclick="crearDepartamento()" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">Añadir</button>
+      <!-- Departamentos -->
+      <div class="card p-5">
+        <h2 class="font-bold text-[#405060] mb-3">Departamentos</h2>
+        <ul id="admin-deptos" class="text-sm"></ul>
+        <div class="flex gap-2 mt-3">
+          <input id="admin-dept-nombre" type="text" placeholder="Nombre" class="inp flex-1">
+          <button onclick="crearDepartamento()" class="btn btn-sage">Añadir</button>
         </div>
       </div>
-    </div>
-    <div class="bg-white rounded shadow p-4 mt-4 overflow-x-auto">
-      <h3 class="font-bold mb-3">Usuarios</h3>
-      <table class="w-full text-sm mb-4">
-        <thead class="bg-gray-50 text-left text-gray-600">
-          <tr>
-            <th class="px-4 py-2 font-medium">Usuario</th>
-            <th class="px-4 py-2 font-medium">Nombre</th>
-            <th class="px-4 py-2 font-medium">Rol</th>
-          </tr>
-        </thead>
-        <tbody id="admin-usuarios"></tbody>
-      </table>
-      <div class="flex flex-wrap items-end gap-2">
-        <div>
-          <label class="block text-sm font-medium mb-1">Username</label>
-          <input id="admin-user-username" type="text" class="border rounded px-3 py-2">
+      <!-- Usuarios -->
+      <div class="card p-5">
+        <h2 class="font-bold text-[#405060] mb-3">Usuarios</h2>
+        <div class="overflow-x-auto mb-3">
+          <table class="w-full">
+            <thead>
+              <tr class="text-left border-b border-[#EDE4D3]">
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Usuario</th>
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Nombre</th>
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5">Rol</th>
+              </tr>
+            </thead>
+            <tbody id="admin-usuarios"></tbody>
+          </table>
         </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Contraseña</label>
-          <input id="admin-user-password" type="password" class="border rounded px-3 py-2">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Nombre</label>
-          <input id="admin-user-nombre" type="text" class="border rounded px-3 py-2">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Rol</label>
-          <select id="admin-user-rol" class="border rounded px-3 py-2">
+        <div class="space-y-2">
+          <input id="admin-user-username" type="text" placeholder="Usuario" class="inp w-full">
+          <input id="admin-user-password" type="password" placeholder="Contraseña" class="inp w-full">
+          <input id="admin-user-nombre" type="text" placeholder="Nombre" class="inp w-full">
+          <select id="admin-user-rol" class="inp w-full">
             <option value="staff">Staff</option>
             <option value="admin">Admin</option>
           </select>
+          <button onclick="crearUsuario()" class="btn btn-copper w-full">Crear</button>
         </div>
-        <button onclick="crearUsuario()" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">Crear</button>
       </div>
     </div>
   </section>
 
   <!-- Modal -->
-  <div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-      <h3 id="modal-title" class="font-bold mb-4"></h3>
-      <div class="space-y-3">
+  <div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div class="card w-full max-w-sm overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-[#78A068] to-[#5C8A52]">
+        <h3 id="modal-title" class="text-white font-bold text-base"></h3>
+      </div>
+      <div class="p-6 space-y-3">
         <div>
-          <label class="block text-sm font-medium mb-1">Puesto</label>
-          <select id="modal-puesto" class="w-full border rounded px-3 py-2"></select>
+          <label class="block text-xs font-semibold sub mb-1.5">Puesto</label>
+          <select id="modal-puesto" class="inp w-full"></select>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">Tipo</label>
-          <select id="modal-tipo" class="w-full border rounded px-3 py-2">
+          <label class="block text-xs font-semibold sub mb-1.5">Tipo</label>
+          <select id="modal-tipo" class="inp w-full">
             <option value="agente">Agente</option>
             <option value="staff">Staff</option>
             <option value="visita">Visita</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">Servicio</label>
-          <select id="modal-servicio" class="w-full border rounded px-3 py-2"></select>
+          <label class="block text-xs font-semibold sub mb-1.5">Servicio</label>
+          <select id="modal-servicio" class="inp w-full"></select>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">Departamento</label>
-          <select id="modal-departamento" class="w-full border rounded px-3 py-2"></select>
+          <label class="block text-xs font-semibold sub mb-1.5">Departamento</label>
+          <select id="modal-departamento" class="inp w-full"></select>
         </div>
       </div>
-      <div class="flex justify-end gap-2 mt-6">
-        <button onclick="closeModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Cerrar</button>
-        <button onclick="saveReserva()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Guardar</button>
+      <div class="flex justify-end gap-2 px-6 pb-6">
+        <button onclick="closeModal()" class="btn btn-ghost">Cerrar</button>
+        <button onclick="saveReserva()" class="btn btn-copper">Guardar</button>
       </div>
     </div>
   </div>
