@@ -111,14 +111,14 @@ function renderHist(reservas) {
     const td = document.createElement("td");
     td.colSpan = 9;
     td.textContent = "No hay reservas";
-    td.className = "td text-center py-6 text-[#A89B7D]";
+    td.className = "td text-center py-6 text-[#94A3B8]";
     tr.appendChild(td);
     body.appendChild(tr);
     return;
   }
   for (const r of reservas) {
     const tr = document.createElement("tr");
-    tr.className = "border-t border-[#EDE4D3] tr-hov";
+    tr.className = "border-t border-[#E5E7EB] tr-hov";
     const vals = [
       r.fecha,
       r.puesto.codigo,
@@ -152,14 +152,14 @@ function renderList(elId, items, emptyMsg) {
   ul.innerHTML = "";
   if (items.length === 0) {
     const li = document.createElement("li");
-    li.className = "text-[#A89B7D] py-1";
+    li.className = "text-[#94A3B8] py-1";
     li.textContent = emptyMsg;
     ul.appendChild(li);
     return;
   }
   for (const i of items) {
     const li = document.createElement("li");
-    li.className = "py-1 border-t border-[#F0E9DC] first:border-t-0 text-[#405060]";
+    li.className = "py-1 border-t border-[#F1F5F9] first:border-t-0 text-[#1F2937]";
     li.textContent = i.nombre;
     ul.appendChild(li);
   }
@@ -173,14 +173,14 @@ function renderAdminUsuarios(usuarios) {
     const td = document.createElement("td");
     td.colSpan = 3;
     td.textContent = "Sin usuarios";
-    td.className = "td text-center py-6 text-[#A89B7D]";
+    td.className = "td text-center py-6 text-[#94A3B8]";
     tr.appendChild(td);
     tbody.appendChild(tr);
     return;
   }
   for (const u of usuarios) {
     const tr = document.createElement("tr");
-    tr.className = "border-t border-[#EDE4D3]";
+    tr.className = "border-t border-[#E5E7EB]";
     for (const v of [u.username, u.nombre, u.rol]) {
       const td = document.createElement("td");
       td.className = "td";
@@ -307,9 +307,9 @@ function deskStatus(desk, desde, hasta) {
 /* ── SVG desk ── */
 function deskSVG() {
   return `<svg viewBox="0 0 60 36" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-    <rect x="2" y="2" width="56" height="14" rx="2" fill="#F0E9DA" stroke="#C4B794" stroke-width="1"/>
-    <circle cx="18" cy="28" r="6" fill="#E8DFC9" stroke="#B7AE97" stroke-width="1"/>
-    <circle cx="42" cy="28" r="6" fill="#E8DFC9" stroke="#B7AE97" stroke-width="1"/>
+    <rect x="2" y="2" width="56" height="14" rx="2" fill="#EDF1F5" stroke="#B6C0CC" stroke-width="1"/>
+    <circle cx="18" cy="28" r="6" fill="#E2E8F0" stroke="#A7B3C0" stroke-width="1"/>
+    <circle cx="42" cy="28" r="6" fill="#E2E8F0" stroke="#A7B3C0" stroke-width="1"/>
   </svg>`;
 }
 
@@ -333,7 +333,7 @@ function renderPlan() {
       const pDesks = allDesks.filter(d => d.planta === planta);
       const card = document.createElement("div");
       card.className = "card plan-card p-5";
-      card.innerHTML = `<h3 class="font-extrabold text-base text-[#405060] mb-3">Planta ${planta}</h3>`;
+      card.innerHTML = `<h3 class="font-extrabold text-base text-[#1F2937] mb-3">Planta ${planta}</h3>`;
 
       const zonas = [...new Set(pDesks.map(d => d.zona))];
       const hasTwoZones = zonas.length === 2;
@@ -347,7 +347,7 @@ function renderPlan() {
         zonaEl.className = "flex-1";
         const zonaLabel = zona === "ZI" ? "Izquierda" : "Derecha";
         const count = zDesks.reduce((s, d) => s + d.positions.length, 0);
-        zonaEl.innerHTML = `<h4 class="text-sm font-semibold mb-2 text-[#5C8A52]">Zona ${zonaLabel} <span class="font-normal text-[#7A6F5A]">(${count} puestos)</span></h4>`;
+        zonaEl.innerHTML = `<h4 class="text-sm font-semibold mb-2 text-[#405060]">Zona ${zonaLabel} <span class="font-normal text-[#64748B]">(${count} puestos)</span></h4>`;
 
         const filas = [...new Set(zDesks.map(d => d.fila))].sort((a, b) => a - b);
         filas.forEach(fila => {
@@ -356,7 +356,7 @@ function renderPlan() {
           const lado2 = fDesks.filter(d => d.lado === 2);
           const rowEl = document.createElement("div");
           rowEl.className = "flex items-center gap-1 mb-1";
-          rowEl.innerHTML = `<span class="text-xs text-[#A89B7D] w-5 text-right">${fila}</span>`;
+          rowEl.innerHTML = `<span class="text-xs text-[#94A3B8] w-5 text-right">${fila}</span>`;
           const leftDiv = document.createElement("div");
           leftDiv.className = "flex gap-1";
           lado1.forEach(d => leftDiv.appendChild(deskEl(d, desde, hasta)));
@@ -378,14 +378,14 @@ function renderPlan() {
         if (hasTwoZones && zi === 0) {
           const pasillo = document.createElement("div");
           pasillo.className = "w-8 flex flex-col items-center justify-center self-stretch pt-8";
-          pasillo.innerHTML = `<div class="pasillo flex-1"></div><span class="text-[10px] text-[#A89B7D] rotate-90 whitespace-nowrap my-2 tracking-wider">PASILLO</span><div class="pasillo flex-1"></div>`;
+          pasillo.innerHTML = `<div class="pasillo flex-1"></div><span class="text-[10px] text-[#94A3B8] rotate-90 whitespace-nowrap my-2 tracking-wider">PASILLO</span><div class="pasillo flex-1"></div>`;
           zonasRow.appendChild(pasillo);
         }
       });
 
       if (!hasTwoZones) {
         const placeholder = document.createElement("div");
-        placeholder.className = "flex-1 border-2 border-dashed border-[#D9C9A8] rounded-lg flex items-center justify-center h-48 text-[#A89B7D] bg-[#FBF7EF]";
+        placeholder.className = "flex-1 border-2 border-dashed border-[#CBD5E1] rounded-lg flex items-center justify-center h-48 text-[#94A3B8] bg-[#F8FAFC]";
         placeholder.textContent = "No disponible";
         zonasRow.appendChild(placeholder);
       }
@@ -400,7 +400,7 @@ function deskEl(desk, desde, hasta) {
   const status = deskStatus(desk, desde, hasta);
   const el = document.createElement("div");
   el.className = "desk w-14 h-14 rounded-xl border cursor-pointer flex flex-col items-center justify-center text-xs";
-  el.innerHTML = `${deskSVG()}<span class="text-[9px] leading-none mt-0.5 text-[#8A8169]">${desk.posRange}</span>`;
+  el.innerHTML = `${deskSVG()}<span class="text-[9px] leading-none mt-0.5 text-[#64748B]">${desk.posRange}</span>`;
   el.title = desk.codigos.join(" · ");
 
   if (status.state === "mine") {

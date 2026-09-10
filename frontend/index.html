@@ -9,39 +9,36 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: #F6F1E8; }
-    .inp { border: 1px solid #EAE0CF; background: #FFF; border-radius: 10px; padding: 8px 12px; font-size: 13px; color: #405060; outline: none; transition: border-color .15s, box-shadow .15s; }
-    .inp:focus { border-color: #78A068; box-shadow: 0 0 0 3px rgba(120,160,104,.18); }
-    .inp-warm { background: #FAF6EE; }
-    .btn { border-radius: 10px; padding: 9px 16px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; transition: filter .15s, transform .05s; }
+    body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: #F1F5F9; }
+    .inp { border: 1px solid #E2E4E9; background: #FFF; border-radius: 10px; padding: 8px 12px; font-size: 13px; color: #1F2937; outline: none; transition: border-color .15s, box-shadow .15s; }
+    .inp:focus { border-color: #405060; box-shadow: 0 0 0 3px rgba(64,80,96,.12); }
+    .btn { border-radius: 10px; padding: 9px 16px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; transition: filter .15s, transform .05s; color: #fff; }
     .btn:active { transform: translateY(1px); }
-    .btn-copper { background: linear-gradient(135deg, #C06848, #D88860); color: #fff; }
-    .btn-copper:hover { filter: brightness(1.06); }
-    .btn-sage { background: linear-gradient(135deg, #78A068, #5C8A52); color: #fff; }
-    .btn-sage:hover { filter: brightness(1.06); }
-    .btn-ghost { background: transparent; color: #7A6F5A; border: 1px solid #EAE0CF; }
-    .btn-ghost:hover { background: #FBF7EF; }
-    .card { background: #FFF; border: 1px solid #EAE0CF; border-radius: 16px; box-shadow: 0 10px 26px rgba(122,92,54,.10); }
-    .sub { color: #7A6F5A; }
-    .link-tab { color: #6B7280; transition: color .15s; }
-    .link-tab:hover { color: #405060; }
+    .btn-navy { background: #405060; }
+    .btn-navy:hover { background: #4B5E60; }
+    .btn-ghost { background: transparent; color: #64748B; border: 1px solid #E2E4E9; }
+    .btn-ghost:hover { background: #F1F5F9; }
+    .card { background: #FFF; border: 1px solid #E5E7EB; border-radius: 16px; box-shadow: 0 10px 26px rgba(15,23,42,.06); }
+    .sub { color: #64748B; }
+    .link-tab { color: rgba(255,255,255,.65); transition: color .15s; }
+    .link-tab:hover { color: #fff; }
     /* Despachos del plano */
     .desk { transition: filter .15s, transform .05s; }
     .desk:active { transform: translateY(1px); }
-    .desk-free { background: #FFF; border: 1px solid #A8C095; }
-    .desk-free:hover { filter: saturate(1.15); background: #F3F7EE; }
-    .desk-occupied { background: #F3D4C6; border: 1px solid #C98E74; }
-    .desk-mine { background: #CFE9DF; border: 1px solid #287080; }
-    .desk-mixed { background: #F6E3C8; border: 1px solid #D9A35E; }
+    .desk-free { background: #FFF; border: 1px solid #CBD5E1; }
+    .desk-free:hover { background: #F1F5F9; }
+    .desk-occupied { background: #FDECEC; border: 1px solid #E8AFAF; }
+    .desk-mine { background: #DBE4EC; border: 1px solid #405060; }
+    .desk-mixed { background: #FDF3E3; border: 1px solid #E3B96B; }
     .desk-mixed:hover { filter: saturate(1.15); }
     .badge { border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
-    .badge-ok { background: #E3F0E2; color: #4E7A46; }
-    .badge-no { background: #F6E3D6; color: #B2633F; }
-    .pasillo { border-top: 1px dashed #D9C9A8; border-bottom: 1px dashed #D9C9A8; }
-    .plan-card { border: 1px solid #E7E2D3; background: #FCFBF7; }
-    .th { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; color: #6B6269; padding: 10px 14px; text-align: left; }
-    .td { padding: 10px 14px; font-size: 13px; color: #405060; }
-    .tr-hov:hover { background: #FBF7EF; }
+    .badge-ok { background: #E3E9F0; color: #405060; }
+    .badge-no { background: #FBE5E5; color: #B4443C; }
+    .pasillo { border-top: 1px dashed #CBD5E1; border-bottom: 1px dashed #CBD5E1; }
+    .plan-card { border-color: #E5E7EB; background: #FFF; }
+    .th { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; color: #64748B; padding: 10px 14px; text-align: left; }
+    .td { padding: 10px 14px; font-size: 13px; color: #1F2937; }
+    .tr-hov:hover { background: #F8FAFC; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -80,23 +77,22 @@
   </section>
 
   <!-- Nav -->
-  <nav id="nav" class="hidden bg-white shadow-sm px-5 py-3 flex items-center justify-between border-b border-[#EDE4D3]">
+  <nav id="nav" class="hidden bg-[#1E293B] px-5 py-3 flex items-center justify-between shadow-md">
     <div class="flex items-center gap-2.5">
       <img src="/logo.png" alt="Nido" class="h-8 rounded-md">
-      <span class="text-[#405060] font-extrabold text-lg tracking-tight">Nido</span>
     </div>
     <div class="flex items-center gap-5">
-      <span id="nav-user" class="text-sm sub"></span>
+      <span id="nav-user" class="text-sm text-white/60"></span>
       <button onclick="show('reservar')" class="link-tab text-sm font-semibold">Reservar</button>
       <button onclick="show('historico')" class="link-tab text-sm font-semibold">Histórico</button>
       <button id="btn-admin" class="link-tab text-sm font-semibold hidden" onclick="show('admin')">Admin</button>
-      <button onclick="logout()" class="text-sm font-semibold text-[#B2633F] hover:text-[#C06848]">Salir</button>
+      <button onclick="logout()" class="text-sm font-semibold text-red-300 hover:text-red-200">Salir</button>
     </div>
   </nav>
 
   <!-- Reservar -->
   <section id="reservar" class="hidden p-5 max-w-6xl mx-auto">
-    <div class="card bg-[#FBF7EF] p-4 mb-5 flex items-end gap-4 flex-wrap">
+    <div class="card p-4 mb-5 flex items-end gap-4 flex-wrap">
       <div>
         <label class="block text-xs font-semibold sub mb-1.5">Fecha</label>
         <input id="fecha" type="date" class="inp">
@@ -109,23 +105,23 @@
         <label class="block text-xs font-semibold sub mb-1.5">Hasta</label>
         <input id="hasta" type="time" value="19:00" class="inp">
       </div>
-      <button onclick="renderPlan()" class="btn btn-copper">Mostrar plano</button>
+      <button onclick="renderPlan()" class="btn btn-navy">Mostrar plano</button>
     </div>
 
     <div id="plan" class="flex flex-col gap-5"></div>
 
     <div class="flex gap-5 mt-5 text-xs sub flex-wrap">
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#A8C095] bg-white rounded"></span>Libre</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#C98E74] bg-[#F3D4C6] rounded"></span>Ocupado</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#287080] bg-[#CFE9DF] rounded"></span>Tu reserva</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#D9A35E] bg-[#F6E3C8] rounded"></span>Mixto</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#CBD5E1] bg-white rounded"></span>Libre</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#E8AFAF] bg-[#FDECEC] rounded"></span>Ocupado</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#405060] bg-[#DBE4EC] rounded"></span>Tu reserva</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#E3B96B] bg-[#FDF3E3] rounded"></span>Mixto</span>
     </div>
   </section>
 
   <!-- Histórico -->
   <section id="historico" class="hidden p-5 max-w-6xl mx-auto">
     <div class="card overflow-hidden">
-      <div class="px-5 py-4 bg-[#FBF7EF] border-b border-[#EDE4D3] flex items-end gap-3 flex-wrap">
+      <div class="px-5 py-4 bg-[#F8FAFC] border-b border-[#E5E7EB] flex items-end gap-3 flex-wrap">
         <div><label class="block text-xs font-semibold sub mb-1.5">Desde</label><input id="hist-fecha-desde" type="date" class="inp"></div>
         <div><label class="block text-xs font-semibold sub mb-1.5">Hasta</label><input id="hist-fecha-hasta" type="date" class="inp"></div>
         <div><label class="block text-xs font-semibold sub mb-1.5">Servicio</label><select id="hist-servicio" class="inp"></select></div>
@@ -138,12 +134,12 @@
             <option value="visita">Visita</option>
           </select>
         </div>
-        <button onclick="loadHistorico()" class="btn btn-copper">Filtrar</button>
+        <button onclick="loadHistorico()" class="btn btn-navy">Filtrar</button>
         <button onclick="limpiarHistorico()" class="btn btn-ghost">Limpiar</button>
       </div>
       <div class="overflow-x-auto">
         <table id="tbl-historico" class="w-full">
-          <thead class="bg-[#F1ECE0] border-b border-[#E7DFC9]">
+          <thead class="bg-[#F1F5F9] border-b border-[#E5E7EB]">
             <tr>
               <th class="th">Fecha</th>
               <th class="th">Puesto</th>
@@ -167,29 +163,29 @@
     <div class="grid md:grid-cols-3 gap-5">
       <!-- Servicios -->
       <div class="card p-5">
-        <h2 class="font-bold text-[#405060] mb-3">Servicios</h2>
+        <h2 class="font-bold text-[#1F2937] mb-3">Servicios</h2>
         <ul id="admin-servicios" class="text-sm"></ul>
         <div class="flex gap-2 mt-3">
           <input id="admin-serv-nombre" type="text" placeholder="Nombre" class="inp flex-1">
-          <button onclick="crearServicio()" class="btn btn-sage">Añadir</button>
+          <button onclick="crearServicio()" class="btn btn-navy">Añadir</button>
         </div>
       </div>
       <!-- Departamentos -->
       <div class="card p-5">
-        <h2 class="font-bold text-[#405060] mb-3">Departamentos</h2>
+        <h2 class="font-bold text-[#1F2937] mb-3">Departamentos</h2>
         <ul id="admin-deptos" class="text-sm"></ul>
         <div class="flex gap-2 mt-3">
           <input id="admin-dept-nombre" type="text" placeholder="Nombre" class="inp flex-1">
-          <button onclick="crearDepartamento()" class="btn btn-sage">Añadir</button>
+          <button onclick="crearDepartamento()" class="btn btn-navy">Añadir</button>
         </div>
       </div>
       <!-- Usuarios -->
       <div class="card p-5">
-        <h2 class="font-bold text-[#405060] mb-3">Usuarios</h2>
+        <h2 class="font-bold text-[#1F2937] mb-3">Usuarios</h2>
         <div class="overflow-x-auto mb-3">
           <table class="w-full">
             <thead>
-              <tr class="text-left border-b border-[#EDE4D3]">
+              <tr class="text-left border-b border-[#E5E7EB]">
                 <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Usuario</th>
                 <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Nombre</th>
                 <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5">Rol</th>
@@ -206,7 +202,7 @@
             <option value="staff">Staff</option>
             <option value="admin">Admin</option>
           </select>
-          <button onclick="crearUsuario()" class="btn btn-copper w-full">Crear</button>
+          <button onclick="crearUsuario()" class="btn btn-navy w-full">Crear</button>
         </div>
       </div>
     </div>
@@ -215,7 +211,7 @@
   <!-- Modal -->
   <div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
     <div class="card w-full max-w-sm overflow-hidden">
-      <div class="px-6 py-4 bg-gradient-to-r from-[#78A068] to-[#5C8A52]">
+      <div class="px-6 py-4 bg-gradient-to-br from-[#2C3A46] to-[#1E293B]">
         <h3 id="modal-title" class="text-white font-bold text-base"></h3>
       </div>
       <div class="p-6 space-y-3">
@@ -242,7 +238,7 @@
       </div>
       <div class="flex justify-end gap-2 px-6 pb-6">
         <button onclick="closeModal()" class="btn btn-ghost">Cerrar</button>
-        <button onclick="saveReserva()" class="btn btn-copper">Guardar</button>
+        <button onclick="saveReserva()" class="btn btn-navy">Guardar</button>
       </div>
     </div>
   </div>
