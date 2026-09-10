@@ -297,9 +297,10 @@ function deskStatus(desk, desde, hasta) {
     overlaps(r, desde, hasta) && r.usuario.id === state.usuario.id && desk.ids.includes(r.puesto.id));
   const occupied = desk.ids.filter(id => resByPos[id]);
   const free = desk.ids.filter(id => !resByPos[id]);
-  if (mine.length) return { state: "mine", reservations: mine, freeIds: free };
   if (occupied.length === 0) return { state: "free", reservations: [] };
-  if (free.length === 0) return { state: "occupied", reservations: Object.values(resByPos) };
+  if (free.length === 0) return mine.length
+    ? { state: "mine", reservations: mine, freeIds: free }
+    : { state: "occupied", reservations: Object.values(resByPos) };
   return { state: "mixed", reservations: Object.values(resByPos), freeIds: free };
 }
 
