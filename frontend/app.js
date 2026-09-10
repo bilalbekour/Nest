@@ -62,6 +62,8 @@ function enter() {
       fillSelect($("modal-departamento"), d);
       fillHistSelect($("hist-servicio"), s);
       fillHistSelect($("hist-departamento"), d);
+      fillHistSelect($("filtro-servicio"), s);
+      fillHistSelect($("filtro-departamento"), d);
       renderPlan();
     });
 }
@@ -200,6 +202,8 @@ function refrescarCatalogos() {
       fillSelect($("modal-departamento"), d);
       fillHistSelect($("hist-servicio"), s);
       fillHistSelect($("hist-departamento"), d);
+      fillHistSelect($("filtro-servicio"), s);
+      fillHistSelect($("filtro-departamento"), d);
     });
 }
 
@@ -321,6 +325,8 @@ function renderPlan() {
   state.fecha = fecha;
   state.desde = desde;
   state.hasta = hasta;
+  state.fServicio = +$("filtro-servicio").value || null;
+  state.fDepto = +$("filtro-departamento").value || null;
 
   api(`/api/reservas?fecha=${fecha}`).then(reservas => {
     state.reservas = reservas;
@@ -419,6 +425,17 @@ function deskEl(desk, desde, hasta) {
   } else {
     el.classList.add("desk-free");
     el.onclick = () => openModal(desk);
+  }
+  const fS = state.fServicio, fD = state.fDepto;
+  if (fS || fD) {
+    const match = status.reservations.some(r =>
+      (!fS || r.servicio.id === fS) && (!fD || r.departamento.id === fD));
+    if (match) {
+      el.classList.add("desk-match");
+      el.title = "Coincide con el filtro · " + el.title;
+    } else if (status.state !== "free") {
+      el.classList.add("desk-dim");
+    }
   }
   return el;
 }

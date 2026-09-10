@@ -31,6 +31,8 @@
     .desk-mine { background: #DBE4EC; border: 1px solid #405060; }
     .desk-mixed { background: #FDF3E3; border: 1px solid #E3B96B; }
     .desk-mixed:hover { filter: saturate(1.15); }
+    .desk-match { box-shadow: 0 0 0 3px rgba(192,104,72,.95); }
+    .desk-dim { opacity: .35; }
     .badge { border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
     .badge-ok { background: #E3E9F0; color: #405060; }
     .badge-no { background: #FBE5E5; color: #B4443C; }
@@ -105,6 +107,14 @@
         <label class="block text-xs font-semibold sub mb-1.5">Hasta</label>
         <input id="hasta" type="time" value="19:00" class="inp">
       </div>
+      <div>
+        <label class="block text-xs font-semibold sub mb-1.5">Servicio</label>
+        <select id="filtro-servicio" class="inp" onchange="renderPlan()"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold sub mb-1.5">Departamento</label>
+        <select id="filtro-departamento" class="inp" onchange="renderPlan()"></select>
+      </div>
       <button onclick="renderPlan()" class="btn btn-navy">Mostrar plano</button>
     </div>
 
@@ -115,6 +125,7 @@
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#E8AFAF] bg-[#FDECEC] rounded"></span>Ocupado</span>
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#405060] bg-[#DBE4EC] rounded"></span>Tu reserva</span>
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#E3B96B] bg-[#FDF3E3] rounded"></span>Mixto</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block bg-white rounded" style="box-shadow:0 0 0 2px rgba(192,104,72,.95)"></span>Coincide con el filtro</span>
     </div>
   </section>
 
