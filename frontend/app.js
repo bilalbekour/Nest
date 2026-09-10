@@ -594,7 +594,7 @@ function renderPlan() {
       const hasTwoZones = zonas.length === 2;
 
       const zonasRow = document.createElement("div");
-      zonasRow.className = "flex gap-0 items-start min-w-max";
+      zonasRow.className = "flex flex-col xl:flex-row gap-4 xl:gap-0 items-stretch xl:items-start";
 
       zonas.forEach((zona, zi) => {
         const zDesks = pDesks.filter(d => d.zona === zona);
@@ -610,18 +610,18 @@ function renderPlan() {
           const lado1 = fDesks.filter(d => d.lado === 1);
           const lado2 = fDesks.filter(d => d.lado === 2);
           const rowEl = document.createElement("div");
-          rowEl.className = "flex items-center gap-1 mb-1";
-          rowEl.innerHTML = `<span class="text-xs text-[#94A3B8] w-5 text-right">${fila}</span>`;
+          rowEl.className = "flex flex-wrap items-center gap-1 mb-1";
+          rowEl.innerHTML = `<span class="text-xs text-[#94A3B8] w-5 text-right shrink-0">${fila}</span>`;
           const leftDiv = document.createElement("div");
-          leftDiv.className = "flex gap-1";
+          leftDiv.className = "flex gap-1 shrink-0";
           lado1.forEach(d => leftDiv.appendChild(deskEl(d, desde, hasta)));
           rowEl.appendChild(leftDiv);
           if (lado2.length > 0) {
             const aisle = document.createElement("div");
-            aisle.className = "pasillo self-stretch mx-1";
+            aisle.className = "div-v self-stretch mx-1";
             rowEl.appendChild(aisle);
             const rightDiv = document.createElement("div");
-            rightDiv.className = "flex gap-1";
+            rightDiv.className = "flex gap-1 shrink-0";
             lado2.forEach(d => rightDiv.appendChild(deskEl(d, desde, hasta)));
             rowEl.appendChild(rightDiv);
           }
@@ -632,23 +632,20 @@ function renderPlan() {
 
         if (hasTwoZones && zi === 0) {
           const pasillo = document.createElement("div");
-          pasillo.className = "w-8 flex flex-col items-center justify-center self-stretch pt-8";
-          pasillo.innerHTML = `<div class="pasillo flex-1"></div><span class="text-[10px] text-[#94A3B8] rotate-90 whitespace-nowrap my-2 tracking-wider">PASILLO</span><div class="pasillo flex-1"></div>`;
+          pasillo.className = "flex xl:flex-col items-center justify-center gap-2 py-2 xl:py-0 xl:w-8 xl:self-stretch xl:pt-8";
+          pasillo.innerHTML = `<div class="div-h flex-1 xl:hidden"></div><div class="div-v flex-1 hidden xl:block"></div><span class="text-[10px] text-[#94A3B8] tracking-wider whitespace-nowrap xl:rotate-90 xl:my-2">PASILLO</span><div class="div-v flex-1 hidden xl:block"></div><div class="div-h flex-1 xl:hidden"></div>`;
           zonasRow.appendChild(pasillo);
         }
       });
 
       if (!hasTwoZones) {
         const placeholder = document.createElement("div");
-        placeholder.className = "flex-1 min-w-[220px] border-2 border-dashed border-[#CBD5E1] rounded-lg flex items-center justify-center h-48 text-[#94A3B8] bg-[#F8FAFC]";
+        placeholder.className = "flex-1 border-2 border-dashed border-[#CBD5E1] rounded-lg flex items-center justify-center h-48 text-[#94A3B8] bg-[#F8FAFC]";
         placeholder.textContent = "No disponible";
         zonasRow.appendChild(placeholder);
       }
 
-      const scroll = document.createElement("div");
-      scroll.className = "overflow-x-auto";
-      scroll.appendChild(zonasRow);
-      card.appendChild(scroll);
+      card.appendChild(zonasRow);
       container.appendChild(card);
     });
   });
@@ -657,7 +654,7 @@ function renderPlan() {
 function deskEl(desk, desde, hasta) {
   const status = deskStatus(desk, desde, hasta);
   const el = document.createElement("div");
-  el.className = "desk w-14 h-14 rounded-xl border cursor-pointer flex flex-col items-center justify-center text-xs";
+  el.className = "desk w-14 h-14 rounded-xl border cursor-pointer flex flex-col items-center justify-center text-xs shrink-0";
   el.innerHTML = `${deskSVG()}<span class="text-[9px] leading-none mt-0.5 text-[#64748B]">${desk.posRange}</span>`;
   el.title = desk.codigos.join(" · ");
 
