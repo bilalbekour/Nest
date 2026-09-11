@@ -43,8 +43,7 @@ def delete_servicio(servicio_id: int, db: Session = Depends(get_db)):
     obj = db.get(Servicio, servicio_id)
     if not obj:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Servicio no existe")
-    if db.query(Reserva).filter_by(servicio_id=obj.id).first():
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No se puede eliminar: tiene reservas asociadas")
+    db.query(Reserva).filter_by(servicio_id=obj.id).delete()
     db.delete(obj); db.commit()
     return None
 
@@ -81,8 +80,7 @@ def delete_departamento(departamento_id: int, db: Session = Depends(get_db)):
     obj = db.get(Departamento, departamento_id)
     if not obj:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Departamento no existe")
-    if db.query(Reserva).filter_by(departamento_id=obj.id).first():
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No se puede eliminar: tiene reservas asociadas")
+    db.query(Reserva).filter_by(departamento_id=obj.id).delete()
     db.delete(obj); db.commit()
     return None
 

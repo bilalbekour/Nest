@@ -377,7 +377,7 @@ async function guardarCatalogo(kind, id, nombre) {
 }
 
 async function eliminarCatalogo(kind, id) {
-  if (!confirm("¿Eliminar? No se puede si tiene reservas asociadas.")) return;
+  if (!confirm("¿Eliminar? También se eliminarán sus reservas asociadas.")) return;
   try {
     await api(`/api/${kind}/${id}`, { method: "DELETE" });
     await refrescarCatalogos();

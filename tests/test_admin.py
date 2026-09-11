@@ -71,18 +71,20 @@ def test_update_y_delete_servicio(client):
     assert client.delete(f"/api/servicios/{s['id']}", headers=h).status_code == 204
 
 
-def test_delete_servicio_con_reservas_y_duplicado(client):
+def test_delete_servicio_con_reservas_cascada_y_duplicado(client):
     h = admin_h(client)
     hs = auth_headers(client)
-    serv = client.get("/api/servicios", headers=hs).json()[0]
+    servs = client.get("/api/servicios", headers=hs).json()
+    serv, otro = servs[0], servs[1]
+    assert client.put(f"/api/servicios/{otro['id']}", headers=h, json={"nombre": serv["nombre"]}).status_code == 400
     dep = client.get("/api/departamentos", headers=hs).json()[0]["id"]
     puesto = client.get("/api/puestos", headers=hs).json()[0]["id"]
     client.post("/api/reservas", headers=hs, json={"puesto_id": puesto, "fecha": "2026-09-07",
                 "hora_inicio": "09:00", "hora_fin": "10:00", "tipo": "staff",
                 "servicio_id": serv["id"], "departamento_id": dep})
-    assert client.delete(f"/api/servicios/{serv['id']}", headers=h).status_code == 400
-    otro = client.get("/api/servicios", headers=hs).json()[1]["id"]
-    assert client.put(f"/api/servicios/{otro}", headers=h, json={"nombre": serv["nombre"]}).status_code == 400
+    assert client.delete(f"/api/servicios/{serv['id']}", headers=h).status_code == 204
+    assert client.get("/api/historico", headers=h).json() == []
+    assert serv["id"] not in [s["id"] for s in client.get("/api/servicios", headers=h).json()]
 
 
 def test_update_y_delete_departamento(client):
@@ -91,6 +93,19 @@ def test_update_y_delete_departamento(client):
     assert client.put(f"/api/departamentos/{d['id']}", headers=h, json={"nombre": "TmpD2"}).status_code == 200
     assert client.delete(f"/api/departamentos/{d['id']}", headers=h).status_code == 204
     assert client.delete("/api/departamentos/9999", headers=h).status_code == 404
+
+
+def test_delete_departamento_con_reservas_cascada(client):
+    h = admin_h(client)
+    hs = auth_headers(client)
+    dep = client.get("/api/departamentos", headers=hs).json()[0]
+    serv = client.get("/api/servicios", headers=hs).json()[0]["id"]
+    puesto = client.get("/api/puestos", headers=hs).json()[0]["id"]
+    client.post("/api/reservas", headers=hs, json={"puesto_id": puesto, "fecha": "2026-09-07",
+                "hora_inicio": "09:00", "hora_fin": "10:00", "tipo": "staff",
+                "servicio_id": serv, "departamento_id": dep["id"]})
+    assert client.delete(f"/api/departamentos/{dep['id']}", headers=h).status_code == 204
+    assert client.get("/api/historico", headers=h).json() == []
 
 
 def test_patch_puesto_y_list_todos(client):
