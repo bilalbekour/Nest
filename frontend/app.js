@@ -8,7 +8,14 @@ function api(path, opts = {}) {
   if (opts.json) headers["Content-Type"] = "application/json";
   return fetch(path, { method: opts.method || "GET", headers,
     body: opts.json ? JSON.stringify(opts.json) : undefined })
-    .then(async r => { const d = await r.json().catch(() => null); if (!r.ok) throw new Error(d?.detail || "Error"); return d; });
+    .then(async r => {
+      const d = await r.json().catch(() => null);
+      if (!r.ok) {
+        if (r.status === 401 && !path.includes("/api/auth/login")) logout();
+        throw new Error(d?.detail || "Error");
+      }
+      return d;
+    });
 }
 
 function tm(hhmmss) { return (hhmmss || "").slice(0, 5); }
@@ -39,6 +46,8 @@ $("login-form").onsubmit = async (e) => {
       json: { username: $("login-user").value, password: $("login-pass").value } });
     state.token = d.token;
     state.usuario = d.usuario;
+    localStorage.setItem("nido_token", d.token);
+    localStorage.setItem("nido_usuario", JSON.stringify(d.usuario));
     enter();
   } catch (err) {
     $("login-error").textContent = err.message || "Credenciales inválidas";
@@ -72,11 +81,14 @@ function enter() {
       fillHistSelect($("rep-servicio"), s);
       fillHistSelect($("rep-departamento"), d);
       renderPlan();
-    });
+    })
+    .catch(() => logout());
 }
 
 function logout() {
   state.token = null; state.usuario = null;
+  localStorage.removeItem("nido_token");
+  localStorage.removeItem("nido_usuario");
   closeModal();
   const nav = $("nav");
   nav.classList.add("hidden");
@@ -935,3 +947,18 @@ async function cancelReserva(id) {
     alert(err.message);
   }
 }
+
+/* ── Sesión persistente ── */
+(function restaurarSesion() {
+  try {
+    const t = localStorage.getItem("nido_token");
+    const u = JSON.parse(localStorage.getItem("nido_usuario") || "null");
+    if (t && u && u.id) {
+      state.token = t;
+      state.usuario = u;
+      enter();
+    }
+  } catch {
+    logout();
+  }
+})();
