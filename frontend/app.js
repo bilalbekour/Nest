@@ -331,6 +331,16 @@ function renderInforme(rs) {
 }
 
 /* ── Admin ── */
+function showAdminTab(name) {
+  state.adminTab = name;
+  ["usuarios", "servicios", "puestos"].forEach(t => {
+    $(`adm-tab-${t}`).classList.toggle("hidden", t !== name);
+  });
+  document.querySelectorAll("[data-admintab]").forEach(b => {
+    b.classList.toggle("admintab-active", b.dataset.admintab === name);
+  });
+}
+
 function miniBtn(txt, cls, fn) {
   const b = document.createElement("button");
   b.className = "adm-mini" + (cls ? " " + cls : "");
@@ -621,6 +631,7 @@ function refrescarCatalogos() {
 }
 
 function loadAdmin() {
+  showAdminTab(state.adminTab || "usuarios");
   refrescarCatalogos()
     .then(() => api("/api/usuarios"))
     .then(users => {

@@ -51,6 +51,9 @@
     .adm-chip-on { background: #EDF2F7; border-color: #405060; color: #405060; }
     .adm-chip-on:hover { background: #DBE4EC; }
     .adm-chip-off { background: #F1F5F9; border-color: #CBD5E1; color: #94A3B8; text-decoration: line-through; }
+    .admintab { font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 10px; color: #64748B; }
+    .admintab:hover { background: #E5E7EB; color: #1F2937; }
+    .admintab-active { background: #405060 !important; color: #fff !important; }
     .div-v { width: 0; border-left: 1px dashed #CBD5E1; }
     .plan-card { border-color: #E5E7EB; background: #FFF; }
     .th { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; color: #64748B; padding: 10px 14px; text-align: left; }
@@ -349,16 +352,12 @@
 
   <!-- Admin -->
   <section id="admin" class="hidden p-5 max-w-6xl mx-auto">
-    <div class="grid md:grid-cols-3 gap-5">
-      <!-- Servicios y departamentos -->
-      <div class="card p-5 md:col-span-2">
-        <h2 class="font-bold text-[#1F2937] mb-3">Servicios y departamentos</h2>
-        <div class="flex gap-2 mb-4">
-          <input id="admin-serv-nombre" type="text" placeholder="Nuevo servicio" class="inp flex-1">
-          <button onclick="crearServicio()" class="btn btn-navy">Añadir</button>
-        </div>
-        <div id="admin-grupos" class="space-y-3"></div>
-      </div>
+    <div class="flex gap-1.5 mb-5">
+      <button data-admintab="usuarios" onclick="showAdminTab('usuarios')" class="admintab">Usuarios</button>
+      <button data-admintab="servicios" onclick="showAdminTab('servicios')" class="admintab">Servicios</button>
+      <button data-admintab="puestos" onclick="showAdminTab('puestos')" class="admintab">Puestos</button>
+    </div>
+    <div id="adm-tab-usuarios" class="grid md:grid-cols-3 gap-5">
       <!-- Nuevo usuario -->
       <div class="card p-5">
         <h2 class="font-bold text-[#1F2937] mb-3">Nuevo usuario</h2>
@@ -374,7 +373,7 @@
         </div>
       </div>
       <!-- Usuarios -->
-      <div class="card p-5 md:col-span-3">
+      <div class="card p-5 md:col-span-2">
         <h2 class="font-bold text-[#1F2937] mb-3">Usuarios</h2>
         <div class="overflow-x-auto">
           <table class="w-full">
@@ -390,8 +389,21 @@
           </table>
         </div>
       </div>
+    </div>
+    <div id="adm-tab-servicios" class="hidden">
+      <!-- Servicios y departamentos -->
+      <div class="card p-5">
+        <h2 class="font-bold text-[#1F2937] mb-3">Servicios y departamentos</h2>
+        <div class="flex gap-2 mb-4">
+          <input id="admin-serv-nombre" type="text" placeholder="Nuevo servicio" class="inp flex-1">
+          <button onclick="crearServicio()" class="btn btn-navy">Añadir</button>
+        </div>
+        <div id="admin-grupos" class="space-y-3"></div>
+      </div>
+    </div>
+    <div id="adm-tab-puestos" class="hidden">
       <!-- Puestos -->
-      <div class="card p-5 md:col-span-3">
+      <div class="card p-5">
         <div class="flex items-center gap-3 flex-wrap mb-1">
           <h2 class="font-bold text-[#1F2937]">Puestos</h2>
           <span id="adm-puestos-count" class="text-xs text-[#64748B]"></span>
