@@ -43,7 +43,11 @@ def delete_servicio(servicio_id: int, db: Session = Depends(get_db)):
     obj = db.get(Servicio, servicio_id)
     if not obj:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Servicio no existe")
-    db.query(Reserva).filter_by(servicio_id=obj.id).delete()
+    dep_ids = [d.id for d in db.query(Departamento).filter_by(servicio_id=obj.id).all()]
+    if dep_ids:
+        db.query(Reserva).filter(Reserva.departamento_id.in_(dep_ids)).delete(synchronize_session=False)
+        db.query(Departamento).filter(Departamento.id.in_(dep_ids)).delete(synchronize_session=False)
+    db.query(Reserva).filter_by(servicio_id=obj.id).delete(synchronize_session=False)
     db.delete(obj); db.commit()
     return None
 
@@ -55,9 +59,13 @@ def list_departamentos(db: Session = Depends(get_db)):
 
 @router.post("/departamentos", response_model=DepartamentoOut, dependencies=[Depends(require_admin)])
 def create_departamento(data: DepartamentoCreate, db: Session = Depends(get_db)):
+    if data.servicio_id is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "El departamento debe pertenecer a un servicio")
+    if not db.get(Servicio, data.servicio_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Servicio no existe")
     if db.query(Departamento).filter_by(nombre=data.nombre).first():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Departamento ya existe")
-    obj = Departamento(nombre=data.nombre)
+    obj = Departamento(nombre=data.nombre, servicio_id=data.servicio_id)
     db.add(obj); db.commit(); db.refresh(obj)
     return obj
 

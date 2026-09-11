@@ -339,39 +339,107 @@ function miniBtn(txt, cls, fn) {
   return b;
 }
 
-function renderCatalogoList(elId, items, emptyMsg, kind) {
-  const ul = $(elId);
-  ul.innerHTML = "";
-  if (items.length === 0) {
-    const li = document.createElement("li");
-    li.className = "text-[#94A3B8] py-1";
-    li.textContent = emptyMsg;
-    ul.appendChild(li);
+function renderGrupos() {
+  const cont = $("admin-grupos");
+  cont.innerHTML = "";
+  if (!state.servicios.length && !state.departamentos.length) {
+    emptyRow(cont, "Sin servicios");
     return;
   }
-  for (const i of items) {
-    const li = document.createElement("li");
-    li.className = "py-1.5 border-t border-[#F1F5F9] first:border-t-0 flex items-center gap-2";
-    li.dataset.cid = i.id;
-    const sp = document.createElement("span");
-    sp.className = "flex-1 text-[#1F2937]";
-    sp.textContent = i.nombre;
-    li.append(sp, miniBtn("Editar", "", () => editarCatalogo(kind, i)),
-      miniBtn("Eliminar", "adm-danger", () => eliminarCatalogo(kind, i.id)));
-    ul.appendChild(li);
-  }
+  state.servicios.forEach(s => {
+    cont.appendChild(grupoBox(s.id, s.nombre,
+      state.departamentos.filter(d => d.servicio_id === s.id), true));
+  });
+  const sin = state.departamentos.filter(d => !d.servicio_id);
+  if (sin.length) cont.appendChild(grupoBox(null, "Sin servicio", sin, false));
 }
 
-function editarCatalogo(kind, item) {
-  const ul = kind === "servicios" ? $("admin-servicios") : $("admin-deptos");
-  const li = ul.querySelector(`li[data-cid="${item.id}"]`);
-  if (!li) return;
+function grupoBox(servicioId, titulo, deptos, conAlta) {
+  const box = document.createElement("div");
+  box.className = "rounded-xl border border-[#E5E7EB] overflow-hidden";
+  const head = document.createElement("div");
+  head.className = "flex items-center gap-2 px-3 py-2 bg-[#F8FAFC]";
+  const nm = document.createElement("span");
+  nm.className = "font-bold text-[#1F2937] text-sm";
+  nm.textContent = titulo;
+  const badge = document.createElement("span");
+  badge.className = "text-[11px] text-[#64748B]";
+  badge.textContent = `${deptos.length} deptos.`;
+  head.appendChild(nm);
+  head.appendChild(badge);
+  const sp = document.createElement("span");
+  sp.className = "flex-1";
+  head.appendChild(sp);
+  if (servicioId !== null) {
+    const s = state.servicios.find(x => x.id === servicioId);
+    head.append(miniBtn("Editar", "", () => editarServicioBox(s, box)),
+      document.createTextNode(" "),
+      miniBtn("Eliminar", "adm-danger", () => eliminarCatalogo("servicios", servicioId)));
+  }
+  box.appendChild(head);
+  const ul = document.createElement("ul");
+  ul.className = "px-3 py-1 text-sm";
+  if (!deptos.length) {
+    const li = document.createElement("li");
+    li.className = "text-[#94A3B8] py-1";
+    li.textContent = "Sin departamentos";
+    ul.appendChild(li);
+  }
+  deptos.forEach(d => {
+    const li = document.createElement("li");
+    li.className = "py-1.5 border-t border-[#F1F5F9] first:border-t-0 flex items-center gap-2 pl-4";
+    li.dataset.cid = d.id;
+    const dot = document.createElement("span");
+    dot.className = "w-1.5 h-1.5 rounded-full bg-[#94A3B8] shrink-0";
+    const spn = document.createElement("span");
+    spn.className = "flex-1 text-[#1F2937]";
+    spn.textContent = d.nombre;
+    li.append(dot, spn,
+      miniBtn("Editar", "", () => editarDeptoRow(d, li)),
+      miniBtn("Eliminar", "adm-danger", () => eliminarCatalogo("departamentos", d.id)));
+    ul.appendChild(li);
+  });
+  box.appendChild(ul);
+  if (conAlta) {
+    const add = document.createElement("div");
+    add.className = "flex gap-2 px-3 py-2 border-t border-[#E5E7EB] bg-white";
+    const inp = document.createElement("input");
+    inp.className = "inp flex-1";
+    inp.placeholder = "Nuevo departamento";
+    inp.id = `adm-newdepto-${servicioId}`;
+    const btn = document.createElement("button");
+    btn.className = "btn btn-navy";
+    btn.style.padding = "7px 12px";
+    btn.textContent = "Añadir";
+    btn.onclick = () => crearDepartamento(servicioId);
+    add.append(inp, btn);
+    box.appendChild(add);
+  }
+  return box;
+}
+
+function editarServicioBox(s, box) {
+  const head = box.querySelector("div");
+  const nm = head.querySelector("span");
+  const inp = document.createElement("input");
+  inp.className = "inp flex-1";
+  inp.value = s.nombre;
+  head.replaceChild(inp, nm);
+  head.querySelectorAll("button").forEach(b => b.remove());
+  head.append(miniBtn("Guardar", "adm-save", () => guardarCatalogo("servicios", s.id, inp.value.trim())),
+    document.createTextNode(" "),
+    miniBtn("Cancelar", "", () => loadAdmin()));
+  inp.focus();
+  inp.select();
+}
+
+function editarDeptoRow(d, li) {
   li.innerHTML = "";
   const inp = document.createElement("input");
   inp.className = "inp flex-1";
-  inp.value = item.nombre;
+  inp.value = d.nombre;
   li.append(inp,
-    miniBtn("Guardar", "adm-save", () => guardarCatalogo(kind, item.id, inp.value.trim())),
+    miniBtn("Guardar", "adm-save", () => guardarCatalogo("departamentos", d.id, inp.value.trim())),
     miniBtn("Cancelar", "", () => loadAdmin()));
   inp.focus();
   inp.select();
@@ -389,7 +457,10 @@ async function guardarCatalogo(kind, id, nombre) {
 }
 
 async function eliminarCatalogo(kind, id) {
-  if (!confirm("¿Eliminar? También se eliminarán sus reservas asociadas.")) return;
+  const msg = kind === "servicios"
+    ? "¿Eliminar el servicio? También se eliminarán sus departamentos y sus reservas."
+    : "¿Eliminar? También se eliminarán sus reservas asociadas.";
+  if (!confirm(msg)) return;
   try {
     await api(`/api/${kind}/${id}`, { method: "DELETE" });
     await refrescarCatalogos();
@@ -553,8 +624,7 @@ function loadAdmin() {
   refrescarCatalogos()
     .then(() => api("/api/usuarios"))
     .then(users => {
-      renderCatalogoList("admin-servicios", state.servicios, "Sin servicios", "servicios");
-      renderCatalogoList("admin-deptos", state.departamentos, "Sin departamentos", "departamentos");
+      renderGrupos();
       renderAdminUsuarios(users);
       loadPuestosAdmin();
     })
@@ -574,12 +644,11 @@ async function crearServicio() {
   }
 }
 
-async function crearDepartamento() {
-  const input = $("admin-dept-nombre");
-  if (!input.value.trim()) return;
+async function crearDepartamento(servicioId) {
+  const input = $(`adm-newdepto-${servicioId}`);
+  if (!input || !input.value.trim()) return;
   try {
-    await api("/api/departamentos", { method: "POST", json: { nombre: input.value.trim() } });
-    input.value = "";
+    await api("/api/departamentos", { method: "POST", json: { nombre: input.value.trim(), servicio_id: servicioId } });
     await refrescarCatalogos();
     loadAdmin();
   } catch (err) {
@@ -867,12 +936,29 @@ function reservaEn(puestoId, desde, hasta) {
 
 function cap(s) { return s[0].toUpperCase() + s.slice(1); }
 
+function fillDeptosForServicio() {
+  const sid = +$("modal-servicio").value || null;
+  const sel = $("modal-departamento");
+  const cur = sel.value;
+  sel.innerHTML = "";
+  state.departamentos
+    .filter(d => !d.servicio_id || d.servicio_id === sid)
+    .forEach(d => {
+      const o = document.createElement("option");
+      o.value = d.id;
+      o.textContent = d.nombre;
+      sel.appendChild(o);
+    });
+  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+
 function openModal(desk, freeIds, desde, hasta) {
   modalDesk = desk;
   desde = desde || state.desde;
   hasta = hasta || state.hasta;
   const hasFree = !freeIds || freeIds.length > 0;
   $("modal-title").textContent = `${hasFree ? "Reservar" : "Mesa"} · ${desk.codigos.join(" / ")}`;
+  fillDeptosForServicio();
   const info = $("modal-info");
   info.innerHTML = "";
   for (const p of desk.positions) {

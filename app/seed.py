@@ -30,11 +30,18 @@ def seed_base(db: Session) -> None:
         db.add(Usuario(username="admin", password_hash=hash_password("admin123"),
                        nombre="Administrador", rol="admin"))
     if not db.query(Servicio).count():
-        for nombre in ("Telefonía", "Soporte TI", "Atención Cliente"):
-            db.add(Servicio(nombre=nombre))
-    if not db.query(Departamento).count():
-        for nombre in ("Operaciones", "Comercial", "TI"):
-            db.add(Departamento(nombre=nombre))
+        mm = Servicio(nombre="MasMovil")
+        vf = Servicio(nombre="Vodafone")
+        db.add_all([mm, vf])
+        db.flush()
+        db.add_all([
+            Departamento(nombre="BO Reclamaciones", servicio_id=mm.id),
+            Departamento(nombre="BO Altas", servicio_id=mm.id),
+            Departamento(nombre="BO Bajas", servicio_id=mm.id),
+            Departamento(nombre="Retenciones", servicio_id=vf.id),
+            Departamento(nombre="Portas", servicio_id=vf.id),
+            Departamento(nombre="Fidelización", servicio_id=vf.id),
+        ])
     db.commit()
 
 

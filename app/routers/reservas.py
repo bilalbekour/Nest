@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.auth import require_staff
 from app.db import get_db
-from app.models import Puesto, Reserva
+from app.models import Departamento, Puesto, Reserva, Servicio
 from app.schemas import ReservaCreate, ReservaOut
 
 router = APIRouter(prefix="/api", tags=["reservas"])
@@ -46,6 +46,13 @@ def create_reserva(data: ReservaCreate, db: Session = Depends(get_db), usuario=D
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "hora_fin debe ser mayor que hora_inicio")
     if not db.get(Puesto, data.puesto_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Puesto no existe")
+    if not db.get(Servicio, data.servicio_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Servicio no existe")
+    dep = db.get(Departamento, data.departamento_id)
+    if not dep:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Departamento no existe")
+    if dep.servicio_id is not None and dep.servicio_id != data.servicio_id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "El departamento no pertenece a ese servicio")
     # ponytail: check-then-insert sin lock; para carga alta usar
     # SELECT ... FOR UPDATE o índice único parcial (puesto_id, fecha) WHERE NOT cancelada
     if _reservas_activas(db, data.puesto_id, data.fecha, data.hora_inicio, data.hora_fin):

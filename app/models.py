@@ -28,6 +28,9 @@ class Departamento(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(100), unique=True)
+    servicio_id: Mapped[int | None] = mapped_column(ForeignKey("servicios.id"), nullable=True)
+
+    servicio: Mapped["Servicio | None"] = relationship(lazy="joined")
 
 
 class Puesto(Base):

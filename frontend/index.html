@@ -350,23 +350,14 @@
   <!-- Admin -->
   <section id="admin" class="hidden p-5 max-w-6xl mx-auto">
     <div class="grid md:grid-cols-3 gap-5">
-      <!-- Servicios -->
-      <div class="card p-5">
-        <h2 class="font-bold text-[#1F2937] mb-3">Servicios</h2>
-        <ul id="admin-servicios" class="text-sm"></ul>
-        <div class="flex gap-2 mt-3">
-          <input id="admin-serv-nombre" type="text" placeholder="Nombre" class="inp flex-1">
+      <!-- Servicios y departamentos -->
+      <div class="card p-5 md:col-span-2">
+        <h2 class="font-bold text-[#1F2937] mb-3">Servicios y departamentos</h2>
+        <div class="flex gap-2 mb-4">
+          <input id="admin-serv-nombre" type="text" placeholder="Nuevo servicio" class="inp flex-1">
           <button onclick="crearServicio()" class="btn btn-navy">Añadir</button>
         </div>
-      </div>
-      <!-- Departamentos -->
-      <div class="card p-5">
-        <h2 class="font-bold text-[#1F2937] mb-3">Departamentos</h2>
-        <ul id="admin-deptos" class="text-sm"></ul>
-        <div class="flex gap-2 mt-3">
-          <input id="admin-dept-nombre" type="text" placeholder="Nombre" class="inp flex-1">
-          <button onclick="crearDepartamento()" class="btn btn-navy">Añadir</button>
-        </div>
+        <div id="admin-grupos" class="space-y-3"></div>
       </div>
       <!-- Nuevo usuario -->
       <div class="card p-5">
@@ -444,7 +435,7 @@
         </div>
         <div>
           <label class="block text-xs font-semibold sub mb-1.5">Servicio</label>
-          <select id="modal-servicio" class="inp w-full"></select>
+          <select id="modal-servicio" class="inp w-full" onchange="fillDeptosForServicio()"></select>
         </div>
         <div>
           <label class="block text-xs font-semibold sub mb-1.5">Departamento</label>
