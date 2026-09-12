@@ -420,19 +420,25 @@
             </select>
           </div>
         </div>
-        <p class="text-xs text-[#94A3B8] mb-3">Clic en un puesto para activarlo o desactivarlo del plano.</p>
+        <p class="text-xs text-[#94A3B8] mb-3">Clic en un puesto para activarlo o desactivarlo. En modo eliminar, clic para borrarlo.</p>
         <div id="adm-puestos-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-1.5"></div>
         <div class="mt-5 rounded-xl border border-[#E5E7EB] p-4">
           <h3 class="font-bold text-sm text-[#1F2937] mb-3">Añadir puestos</h3>
           <div class="flex gap-2 flex-wrap items-end">
             <div><label class="block text-xs font-semibold sub mb-1.5">Planta</label><input id="adm-np-planta" type="number" value="2" min="0" class="inp w-20"></div>
-            <div><label class="block text-xs font-semibold sub mb-1.5">Zona</label><input id="adm-np-zona" type="text" value="ZI" maxlength="4" class="inp w-24 uppercase"></div>
+            <div><label class="block text-xs font-semibold sub mb-1.5">Zona</label><select id="adm-np-zona" class="inp w-32" onchange="toggleZonaNueva()"></select></div>
+            <div id="adm-np-zona-new-wrap" class="hidden"><label class="block text-xs font-semibold sub mb-1.5">Nueva zona</label><input id="adm-np-zona-new" type="text" maxlength="4" placeholder="ZC" class="inp w-24 uppercase"></div>
             <div><label class="block text-xs font-semibold sub mb-1.5">Fila</label><input id="adm-np-fila" type="number" value="1" min="1" class="inp w-20"></div>
             <div><label class="block text-xs font-semibold sub mb-1.5">Despachos izq.</label><input id="adm-np-lado1" type="number" value="4" min="0" class="inp w-24"></div>
             <div><label class="block text-xs font-semibold sub mb-1.5">Despachos der.</label><input id="adm-np-lado2" type="number" value="4" min="0" class="inp w-24"></div>
             <button onclick="crearPuestosLote()" class="btn btn-navy">Generar</button>
           </div>
           <p class="text-xs text-[#94A3B8] mt-2">Cada despacho crea 2 posiciones. La numeración continúa la existente de esa fila y lado.</p>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button id="adm-btn-borrar" onclick="toggleModoBorrar()" class="adm-mini">Eliminar puestos</button>
+          <button onclick="eliminarZonaAdmin()" class="adm-mini adm-danger">Eliminar zona</button>
+          <button onclick="eliminarPlantaAdmin()" class="adm-mini adm-danger">Eliminar planta</button>
         </div>
       </div>
     </div>

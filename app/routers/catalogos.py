@@ -109,6 +109,40 @@ def set_puesto_activo(puesto_id: int, data: PuestoActivo, db: Session = Depends(
     return obj
 
 
+@router.delete("/puestos/{puesto_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin)])
+def delete_puesto(puesto_id: int, db: Session = Depends(get_db)):
+    obj = db.get(Puesto, puesto_id)
+    if not obj:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Puesto no existe")
+    if db.query(Reserva).filter_by(puesto_id=obj.id).first():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No se puede eliminar: tiene reservas asociadas")
+    db.delete(obj); db.commit()
+    return None
+
+
+@router.delete("/zonas", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin)])
+def delete_zona(planta: int, zona: str, db: Session = Depends(get_db)):
+    zona = (zona or "").strip().upper()
+    ids = [p.id for p in db.query(Puesto).filter_by(planta=planta, zona=zona).all()]
+    if not ids:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Zona no existe")
+    db.query(Reserva).filter(Reserva.puesto_id.in_(ids)).delete(synchronize_session=False)
+    db.query(Puesto).filter(Puesto.id.in_(ids)).delete(synchronize_session=False)
+    db.commit()
+    return None
+
+
+@router.delete("/plantas/{planta}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin)])
+def delete_planta(planta: int, db: Session = Depends(get_db)):
+    ids = [p.id for p in db.query(Puesto).filter_by(planta=planta).all()]
+    if not ids:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Planta no existe")
+    db.query(Reserva).filter(Reserva.puesto_id.in_(ids)).delete(synchronize_session=False)
+    db.query(Puesto).filter(Puesto.id.in_(ids)).delete(synchronize_session=False)
+    db.commit()
+    return None
+
+
 def _siguiente_posicion(db: Session, planta: int, zona: str, fila: int, lado: int) -> int:
     mx = db.query(func.max(Puesto.posicion)).filter_by(
         planta=planta, zona=zona, fila=fila, lado=lado).scalar()

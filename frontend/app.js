@@ -611,6 +611,25 @@ function fillAdminPuestoSelects() {
   });
   if (pls.map(String).includes(curP)) selP.value = curP;
   if (zns.includes(curZ)) selZ.value = curZ;
+  const selN = $("adm-np-zona");
+  const curN = selN.value;
+  selN.innerHTML = "";
+  zns.forEach(z => {
+    const o = document.createElement("option");
+    o.value = z;
+    o.textContent = `Zona ${z}`;
+    selN.appendChild(o);
+  });
+  const nn = document.createElement("option");
+  nn.value = "__new__";
+  nn.textContent = "+ Nueva zona…";
+  selN.appendChild(nn);
+  if (zns.includes(curN)) selN.value = curN;
+  toggleZonaNueva();
+}
+
+function toggleZonaNueva() {
+  $("adm-np-zona-new-wrap").classList.toggle("hidden", $("adm-np-zona").value !== "__new__");
 }
 
 function renderPuestosAdmin() {
@@ -625,7 +644,10 @@ function renderPuestosAdmin() {
     b.className = "adm-chip" + (p.activo ? " adm-chip-on" : " adm-chip-off");
     b.title = `${p.codigo} · ${p.activo ? "Activo (clic para desactivar)" : "Inactivo (clic para activar)"}`;
     b.textContent = `F${p.fila}-L${p.lado}-${p.posicion}`;
-    b.onclick = () => togglePuesto(p.id, !p.activo);
+    b.onclick = () => {
+      if (state.adminBorrar) eliminarPuesto(p.id, p.codigo);
+      else togglePuesto(p.id, !p.activo);
+    };
     grid.appendChild(b);
   });
 }
@@ -641,7 +663,9 @@ async function togglePuesto(id, activo) {
 
 async function crearPuestosLote() {
   const planta = +$("adm-np-planta").value;
-  const zona = $("adm-np-zona").value.trim();
+  let zona = $("adm-np-zona").value;
+  if (zona === "__new__") zona = $("adm-np-zona-new").value.trim();
+  zona = (zona || "").toUpperCase();
   const fila = +$("adm-np-fila").value;
   const l1 = +$("adm-np-lado1").value || 0;
   const l2 = +$("adm-np-lado2").value || 0;
@@ -658,6 +682,39 @@ async function crearPuestosLote() {
   } catch (err) {
     alert(err.message);
   }
+}
+
+function toggleModoBorrar() {
+  state.adminBorrar = !state.adminBorrar;
+  const b = $("adm-btn-borrar");
+  b.textContent = state.adminBorrar ? "Terminar" : "Eliminar puestos";
+  b.classList.toggle("adm-danger", !!state.adminBorrar);
+}
+
+async function eliminarPuesto(id, codigo) {
+  if (!confirm(`¿Eliminar ${codigo}? No se puede si tiene reservas.`)) return;
+  try {
+    await api(`/api/puestos/${id}`, { method: "DELETE" });
+    loadPuestosAdmin();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function eliminarZonaAdmin() {
+  const pl = $("adm-puesto-planta").value, zo = $("adm-puesto-zona").value;
+  const n = (state.adminPuestos || []).filter(p => String(p.planta) === pl && p.zona === zo).length;
+  if (!confirm(`¿Eliminar la zona ${zo} de la planta ${pl}? Se eliminarán ${n} puestos y sus reservas.`)) return;
+  api(`/api/zonas?planta=${pl}&zona=${encodeURIComponent(zo)}`, { method: "DELETE" })
+    .then(() => loadPuestosAdmin()).catch(err => alert(err.message));
+}
+
+function eliminarPlantaAdmin() {
+  const pl = $("adm-puesto-planta").value;
+  const n = (state.adminPuestos || []).filter(p => String(p.planta) === pl).length;
+  if (!confirm(`¿Eliminar la planta ${pl} entera? Se eliminarán ${n} puestos y sus reservas.`)) return;
+  api(`/api/plantas/${pl}`, { method: "DELETE" })
+    .then(() => loadPuestosAdmin()).catch(err => alert(err.message));
 }
 
 function refrescarCatalogos() {

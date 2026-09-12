@@ -183,3 +183,51 @@ def test_create_puesto_individual(client):
     dup = client.post("/api/puestos", headers=h, json={"planta": 3, "zona": "ZD", "fila": 2, "lado": 1, "posicion": 1})
     assert dup.status_code == 400
     assert client.post("/api/puestos", headers=h, json={"planta": 3, "zona": "ZD", "fila": 2, "lado": 5}).status_code == 400
+
+
+def _reserva_en(client, hs, puesto_id):
+    servs = client.get("/api/servicios", headers=hs).json()
+    deps = client.get("/api/departamentos", headers=hs).json()
+    s = servs[0]
+    d = [x for x in deps if x["servicio_id"] == s["id"]][0]
+    return client.post("/api/reservas", headers=hs, json={"puesto_id": puesto_id, "fecha": "2026-09-07",
+                       "hora_inicio": "09:00", "hora_fin": "10:00", "tipo": "staff",
+                       "servicio_id": s["id"], "departamento_id": d["id"]})
+
+
+def test_delete_puesto(client):
+    h = admin_h(client)
+    hs = auth_headers(client)
+    p = client.post("/api/puestos", headers=h, json={"planta": 5, "zona": "ZX", "fila": 1, "lado": 1}).json()
+    assert client.delete(f"/api/puestos/{p['id']}", headers=h).status_code == 204
+    assert client.delete(f"/api/puestos/{p['id']}", headers=h).status_code == 404
+    p2 = client.post("/api/puestos", headers=h, json={"planta": 5, "zona": "ZX", "fila": 1, "lado": 1}).json()
+    _reserva_en(client, hs, p2["id"])
+    assert client.delete(f"/api/puestos/{p2['id']}", headers=h).status_code == 400
+    assert client.delete(f"/api/puestos/{p2['id']}", headers=hs).status_code == 403
+
+
+def test_delete_zona(client):
+    h = admin_h(client)
+    hs = auth_headers(client)
+    lote = client.post("/api/puestos/lote", headers=h, json={"planta": 9, "zona": "ZX", "fila": 1, "lados": {"1": 1, "2": 0}}).json()
+    assert len(lote) == 2
+    _reserva_en(client, hs, lote[0]["id"])
+    assert client.delete("/api/zonas?planta=9&zona=ZX", headers=h).status_code == 204
+    rest = [p for p in client.get("/api/puestos", headers=h).json() if p["planta"] == 9]
+    assert rest == []
+    assert client.get("/api/historico", headers=h).json() == []
+    assert client.delete("/api/zonas?planta=9&zona=ZX", headers=h).status_code == 404
+    assert client.delete("/api/zonas?planta=9&zona=ZX", headers=hs).status_code == 403
+
+
+def test_delete_planta(client):
+    h = admin_h(client)
+    hs = auth_headers(client)
+    lote = client.post("/api/puestos/lote", headers=h, json={"planta": 8, "zona": "ZA", "fila": 1, "lados": {"1": 1, "2": 1}}).json()
+    assert len(lote) == 4
+    assert client.delete("/api/plantas/8", headers=h).status_code == 204
+    rest = [p for p in client.get("/api/puestos", headers=h).json() if p["planta"] == 8]
+    assert rest == []
+    assert client.delete("/api/plantas/8", headers=h).status_code == 404
+    assert client.delete("/api/plantas/8", headers=hs).status_code == 403
