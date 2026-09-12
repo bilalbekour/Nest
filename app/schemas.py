@@ -33,10 +33,12 @@ class ServicioOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     nombre: str
+    color: str | None = None
 
 
 class ServicioCreate(BaseModel):
     nombre: str
+    color: str
 
 
 class DepartamentoOut(BaseModel):
@@ -44,11 +46,13 @@ class DepartamentoOut(BaseModel):
     id: int
     nombre: str
     servicio_id: int | None = None
+    color: str | None = None
 
 
 class DepartamentoCreate(BaseModel):
     nombre: str
     servicio_id: int | None = None
+    color: str
 
 
 class PuestoOut(BaseModel):

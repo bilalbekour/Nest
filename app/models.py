@@ -21,6 +21,7 @@ class Servicio(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(100), unique=True)
+    color: Mapped[str | None] = mapped_column(String(7), nullable=True)
 
 
 class Ajuste(Base):
@@ -36,6 +37,7 @@ class Departamento(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(100), unique=True)
     servicio_id: Mapped[int | None] = mapped_column(ForeignKey("servicios.id"), nullable=True)
+    color: Mapped[str | None] = mapped_column(String(7), nullable=True)
 
     servicio: Mapped["Servicio | None"] = relationship(lazy="joined")
 

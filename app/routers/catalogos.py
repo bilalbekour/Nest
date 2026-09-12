@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -11,6 +13,14 @@ from app.schemas import (DepartamentoCreate, DepartamentoOut, PuestoActivo,
 
 router = APIRouter(prefix="/api", tags=["catalogos"])
 
+HEX_COLOR = r"#[0-9a-fA-F]{6}"
+
+
+def _validar_color(color: str | None) -> str:
+    if not color or not re.fullmatch(HEX_COLOR, color):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Color no válido (formato #RRGGBB)")
+    return color
+
 
 @router.get("/servicios", response_model=list[ServicioOut], dependencies=[Depends(require_staff)])
 def list_servicios(db: Session = Depends(get_db)):
@@ -21,7 +31,7 @@ def list_servicios(db: Session = Depends(get_db)):
 def create_servicio(data: ServicioCreate, db: Session = Depends(get_db)):
     if db.query(Servicio).filter_by(nombre=data.nombre).first():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Servicio ya existe")
-    obj = Servicio(nombre=data.nombre)
+    obj = Servicio(nombre=data.nombre, color=_validar_color(data.color))
     db.add(obj); db.commit(); db.refresh(obj)
     return obj
 
@@ -35,6 +45,7 @@ def update_servicio(servicio_id: int, data: ServicioCreate, db: Session = Depend
     if dup:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Servicio ya existe")
     obj.nombre = data.nombre
+    obj.color = _validar_color(data.color)
     db.commit(); db.refresh(obj)
     return obj
 
@@ -66,7 +77,8 @@ def create_departamento(data: DepartamentoCreate, db: Session = Depends(get_db))
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Servicio no existe")
     if db.query(Departamento).filter_by(nombre=data.nombre).first():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Departamento ya existe")
-    obj = Departamento(nombre=data.nombre, servicio_id=data.servicio_id)
+    obj = Departamento(nombre=data.nombre, servicio_id=data.servicio_id,
+                       color=_validar_color(data.color))
     db.add(obj); db.commit(); db.refresh(obj)
     return obj
 
@@ -80,6 +92,7 @@ def update_departamento(departamento_id: int, data: DepartamentoCreate, db: Sess
     if dup:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Departamento ya existe")
     obj.nombre = data.nombre
+    obj.color = _validar_color(data.color)
     db.commit(); db.refresh(obj)
     return obj
 

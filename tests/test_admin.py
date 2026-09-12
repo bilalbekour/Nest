@@ -28,7 +28,7 @@ def test_update_usuario_password(client):
 
 def test_update_usuario_404_y_rol_invalido(client):
     h = admin_h(client)
-    assert client.put("/api/usuarios/9999", headers=h, json={"nombre": "X"}).status_code == 404
+    assert client.put("/api/usuarios/9999", headers=h, json={"nombre": "X", "color": "#123456"}).status_code == 404
     u = client.post("/api/usuarios", headers=h, json={"username": "edit3", "password": "p",
                     "nombre": "E", "rol": "staff"}).json()
     assert client.put(f"/api/usuarios/{u['id']}", headers=h, json={"rol": "jefe"}).status_code == 400
@@ -65,9 +65,9 @@ def test_delete_usuario_propio_y_con_reservas(client):
 
 def test_update_y_delete_servicio(client):
     h = admin_h(client)
-    s = client.post("/api/servicios", headers=h, json={"nombre": "Tmp"}).json()
-    assert client.put(f"/api/servicios/{s['id']}", headers=h, json={"nombre": "Tmp2"}).status_code == 200
-    assert client.put("/api/servicios/9999", headers=h, json={"nombre": "X"}).status_code == 404
+    s = client.post("/api/servicios", headers=h, json={"nombre": "Tmp", "color": "#111111"}).json()
+    assert client.put(f"/api/servicios/{s['id']}", headers=h, json={"nombre": "Tmp2", "color": "#222222"}).status_code == 200
+    assert client.put("/api/servicios/9999", headers=h, json={"nombre": "X", "color": "#123456"}).status_code == 404
     assert client.delete(f"/api/servicios/{s['id']}", headers=h).status_code == 204
 
 
@@ -76,7 +76,7 @@ def test_delete_servicio_con_reservas_cascada_y_duplicado(client):
     hs = auth_headers(client)
     servs = client.get("/api/servicios", headers=hs).json()
     serv, otro = servs[0], servs[1]
-    assert client.put(f"/api/servicios/{otro['id']}", headers=h, json={"nombre": serv["nombre"]}).status_code == 400
+    assert client.put(f"/api/servicios/{otro['id']}", headers=h, json={"nombre": serv["nombre"], "color": "#AAAAAA"}).status_code == 400
     dep = client.get("/api/departamentos", headers=hs).json()[0]["id"]
     puesto = client.get("/api/puestos", headers=hs).json()[0]["id"]
     client.post("/api/reservas", headers=hs, json={"puesto_id": puesto, "fecha": "2026-09-07",
@@ -90,11 +90,11 @@ def test_delete_servicio_con_reservas_cascada_y_duplicado(client):
 def test_update_y_delete_departamento(client):
     h = admin_h(client)
     serv = client.get("/api/servicios", headers=h).json()[0]["id"]
-    assert client.post("/api/departamentos", headers=h, json={"nombre": "SinServ"}).status_code == 400
-    assert client.post("/api/departamentos", headers=h, json={"nombre": "X", "servicio_id": 9999}).status_code == 404
-    d = client.post("/api/departamentos", headers=h, json={"nombre": "TmpD", "servicio_id": serv}).json()
+    assert client.post("/api/departamentos", headers=h, json={"nombre": "SinServ"}).status_code == 422
+    assert client.post("/api/departamentos", headers=h, json={"nombre": "X", "servicio_id": 9999, "color": "#123456"}).status_code == 404
+    d = client.post("/api/departamentos", headers=h, json={"nombre": "TmpD", "servicio_id": serv, "color": "#333333"}).json()
     assert d["servicio_id"] == serv
-    assert client.put(f"/api/departamentos/{d['id']}", headers=h, json={"nombre": "TmpD2"}).status_code == 200
+    assert client.put(f"/api/departamentos/{d['id']}", headers=h, json={"nombre": "TmpD2", "color": "#444444"}).status_code == 200
     assert client.delete(f"/api/departamentos/{d['id']}", headers=h).status_code == 204
     assert client.delete("/api/departamentos/9999", headers=h).status_code == 404
 
@@ -114,8 +114,8 @@ def test_delete_departamento_con_reservas_cascada(client):
 
 def test_delete_servicio_cascada_departamentos(client):
     h = admin_h(client)
-    s = client.post("/api/servicios", headers=h, json={"nombre": "TmpS"}).json()
-    d = client.post("/api/departamentos", headers=h, json={"nombre": "TmpSD", "servicio_id": s["id"]}).json()
+    s = client.post("/api/servicios", headers=h, json={"nombre": "TmpS", "color": "#555555"}).json()
+    d = client.post("/api/departamentos", headers=h, json={"nombre": "TmpSD", "servicio_id": s["id"], "color": "#666666"}).json()
     assert client.delete(f"/api/servicios/{s['id']}", headers=h).status_code == 204
     assert s["id"] not in [x["id"] for x in client.get("/api/servicios", headers=h).json()]
     assert d["id"] not in [x["id"] for x in client.get("/api/departamentos", headers=h).json()]
@@ -124,9 +124,9 @@ def test_delete_servicio_cascada_departamentos(client):
 def test_reserva_departamento_de_otro_servicio_400(client):
     h = admin_h(client)
     hs = auth_headers(client)
-    s1 = client.post("/api/servicios", headers=h, json={"nombre": "S1"}).json()
-    s2 = client.post("/api/servicios", headers=h, json={"nombre": "S2"}).json()
-    d1 = client.post("/api/departamentos", headers=h, json={"nombre": "D1", "servicio_id": s1["id"]}).json()
+    s1 = client.post("/api/servicios", headers=h, json={"nombre": "S1", "color": "#777777"}).json()
+    s2 = client.post("/api/servicios", headers=h, json={"nombre": "S2", "color": "#888888"}).json()
+    d1 = client.post("/api/departamentos", headers=h, json={"nombre": "D1", "servicio_id": s1["id"], "color": "#999999"}).json()
     puesto = client.get("/api/puestos", headers=hs).json()[0]["id"]
     body = {"puesto_id": puesto, "fecha": "2026-09-07", "hora_inicio": "09:00",
             "hora_fin": "10:00", "tipo": "staff", "servicio_id": s2["id"], "departamento_id": d1["id"]}
@@ -245,3 +245,33 @@ def test_orden_zonas(client):
     assert client.put("/api/ajustes/orden_zonas", headers=h, json={"orden": {"9": ["ZI"]}}).status_code == 400
     assert client.put("/api/ajustes/orden_zonas", headers=hs, json={"orden": {"2": ["ZI", "ZD"]}}).status_code == 403
     assert client.get("/api/ajustes/orden_zonas").status_code == 401
+
+
+def test_color_requerido_y_formato(client):
+    h = admin_h(client)
+    assert client.post("/api/servicios", headers=h, json={"nombre": "SinColor"}).status_code == 422
+    assert client.post("/api/servicios", headers=h, json={"nombre": "Mal1", "color": "red"}).status_code == 400
+    assert client.post("/api/servicios", headers=h, json={"nombre": "Mal2", "color": "#12345"}).status_code == 400
+    assert client.post("/api/servicios", headers=h, json={"nombre": "Mal3", "color": "#GGGGGG"}).status_code == 400
+    s = client.post("/api/servicios", headers=h, json={"nombre": "ConColor", "color": "#A1B2C3"}).json()
+    assert s["color"] == "#A1B2C3"
+    serv = client.get("/api/servicios", headers=h).json()[0]["id"]
+    assert client.post("/api/departamentos", headers=h, json={"nombre": "DSin", "servicio_id": serv}).status_code == 422
+    d = client.post("/api/departamentos", headers=h, json={"nombre": "DCon", "servicio_id": serv, "color": "#1A2B3C"}).json()
+    assert d["color"] == "#1A2B3C"
+    assert client.put(f"/api/servicios/{s['id']}", headers=h, json={"nombre": "ConColor", "color": "mal"}).status_code == 400
+    r = client.put(f"/api/servicios/{s['id']}", headers=h, json={"nombre": "ConColor", "color": "#FFFFFF"})
+    assert r.status_code == 200 and r.json()["color"] == "#FFFFFF"
+
+
+def test_reserva_incluye_colores(client):
+    h = admin_h(client)
+    hs = auth_headers(client)
+    s = client.post("/api/servicios", headers=h, json={"nombre": "ColS", "color": "#112233"}).json()
+    d = client.post("/api/departamentos", headers=h, json={"nombre": "ColD", "servicio_id": s["id"], "color": "#445566"}).json()
+    puesto = client.get("/api/puestos", headers=hs).json()[0]["id"]
+    r = client.post("/api/reservas", headers=hs, json={"puesto_id": puesto, "fecha": "2026-09-07",
+                    "hora_inicio": "09:00", "hora_fin": "10:00", "tipo": "staff",
+                    "servicio_id": s["id"], "departamento_id": d["id"]}).json()
+    assert r["servicio"]["color"] == "#112233"
+    assert r["departamento"]["color"] == "#445566"

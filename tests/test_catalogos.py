@@ -11,7 +11,7 @@ def test_list_servicios_admin(client):
 def test_create_servicio_admin(client):
     r = client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
     h = {"Authorization": f"Bearer {r.json()['token']}"}
-    assert client.post("/api/servicios", headers=h, json={"nombre": "Nuevo"}).status_code == 200
+    assert client.post("/api/servicios", headers=h, json={"nombre": "Nuevo", "color": "#123ABC"}).status_code == 200
 
 
 def test_create_servicio_denied_sin_auth(client):

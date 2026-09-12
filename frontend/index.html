@@ -215,8 +215,9 @@
 
     <div class="flex gap-5 mt-5 text-xs sub flex-wrap">
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#CBD5E1] bg-white rounded"></span>Libre</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#E8AFAF] bg-[#FDECEC] rounded"></span>Ocupado</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#405060] bg-[#DBE4EC] rounded"></span>Tu reserva</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#2962FF] bg-[#D9E6FD] rounded"></span>Ocupado (color del servicio)</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#287080] bg-[#D3E5E8] rounded"></span>Compartida (2 servicios)</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border-2 border-[#405060] bg-white rounded"></span>Tu reserva (borde marino)</span>
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#E3B96B] bg-[#FDF3E3] rounded"></span>Mixto</span>
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#CBD5E1] bg-[#F1F5F9] rounded opacity-60"></span>Deshabilitado</span>
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block bg-white rounded" style="box-shadow:0 0 0 2px rgba(192,104,72,.95)"></span>Coincide con el filtro</span>
@@ -398,6 +399,7 @@
         <h2 class="font-bold text-[#1F2937] mb-3">Servicios y departamentos</h2>
         <div class="flex gap-2 mb-4">
           <input id="admin-serv-nombre" type="text" placeholder="Nuevo servicio" class="inp flex-1">
+          <input id="admin-serv-color" type="color" value="#2962FF" title="Color del servicio" class="w-10 h-10 p-1 border border-[#E2E4E9] rounded-[10px] cursor-pointer shrink-0">
           <button onclick="crearServicio()" class="btn btn-navy">Añadir</button>
         </div>
         <div id="admin-grupos" class="space-y-3"></div>

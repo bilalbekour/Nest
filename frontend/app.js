@@ -20,6 +20,24 @@ function api(path, opts = {}) {
 
 function tm(hhmmss) { return (hhmmss || "").slice(0, 5); }
 function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+/* ── Colores por servicio ── */
+const PALETTE = ["#2962FF", "#D32F2F", "#00897B", "#8E44AD", "#E67E22", "#0097A7", "#795548", "#C2185B"];
+const COLOR_FALLO = "#94A3B8";
+const COLOR_SHARED = "#287080";
+function normColor(c) { return /^#[0-9a-fA-F]{6}$/.exec(c || "") ? c : COLOR_FALLO; }
+function tint(hex, amt = 0.82) {
+  const n = parseInt(normColor(hex).slice(1), 16);
+  const t = v => Math.round(v + (255 - v) * amt);
+  return `rgb(${t((n >> 16) & 255)},${t((n >> 8) & 255)},${t(n & 255)})`;
+}
+function serviciosDe(rs) {
+  const seen = [];
+  (rs || []).forEach(r => {
+    if (r.servicio && !seen.some(s => s.id === r.servicio.id)) seen.push(r.servicio);
+  });
+  return seen;
+}
 function fillSelect(el, items) {
   el.innerHTML = "";
   for (const i of items) {
@@ -265,19 +283,23 @@ function renderInforme(rs) {
     bump(cU, r.usuario.nombre);
   });
 
+  const colDe = (lista, nombre, fallo) => {
+    const f = (lista || []).find(x => x.nombre === nombre);
+    return (f && f.color) || fallo;
+  };
   const elS = $("rep-por-servicio");
   elS.innerHTML = "";
   const sE = sorted(cS);
   if (!sE.length) emptyRow(elS, "Sin datos en el periodo");
   const sMax = sE.length ? sE[0][1] : 0;
-  sE.forEach(([n, c]) => barRow(elS, `${n} · ${pct(c)}%`, c, sMax, "#405060"));
+  sE.forEach(([n, c]) => barRow(elS, `${n} · ${pct(c)}%`, c, sMax, colDe(state.servicios, n, "#405060")));
 
   const elD = $("rep-por-depto");
   elD.innerHTML = "";
   const dE = sorted(cD);
   if (!dE.length) emptyRow(elD, "Sin datos en el periodo");
   const dMax = dE.length ? dE[0][1] : 0;
-  dE.forEach(([n, c]) => barRow(elD, `${n} · ${pct(c)}%`, c, dMax, "#7C8DA0"));
+  dE.forEach(([n, c]) => barRow(elD, `${n} · ${pct(c)}%`, c, dMax, colDe(state.departamentos, n, "#7C8DA0")));
 
   const elT = $("rep-por-tipo");
   elT.innerHTML = "";
@@ -361,24 +383,39 @@ function renderGrupos() {
   }
   state.servicios.forEach(s => {
     cont.appendChild(grupoBox(s.id, s.nombre,
-      state.departamentos.filter(d => d.servicio_id === s.id), true));
+      state.departamentos.filter(d => d.servicio_id === s.id), true, s.color));
   });
   const sin = state.departamentos.filter(d => !d.servicio_id);
-  if (sin.length) cont.appendChild(grupoBox(null, "Sin servicio", sin, false));
+  if (sin.length) cont.appendChild(grupoBox(null, "Sin servicio", sin, false, null));
 }
 
-function grupoBox(servicioId, titulo, deptos, conAlta) {
+function colorDot(color, cls = "") {
+  const dot = document.createElement("span");
+  dot.className = "w-2.5 h-2.5 rounded-full shrink-0 " + cls;
+  dot.style.background = normColor(color);
+  return dot;
+}
+
+function colorPicker(value, cls = "") {
+  const inp = document.createElement("input");
+  inp.type = "color";
+  inp.value = normColor(value);
+  inp.className = "w-9 h-9 p-0.5 border border-[#E2E4E9] rounded cursor-pointer shrink-0 " + cls;
+  return inp;
+}
+
+function grupoBox(servicioId, titulo, deptos, conAlta, color) {
   const box = document.createElement("div");
   box.className = "rounded-xl border border-[#E5E7EB] overflow-hidden";
   const head = document.createElement("div");
   head.className = "flex items-center gap-2 px-3 py-2 bg-[#F8FAFC]";
   const nm = document.createElement("span");
-  nm.className = "font-bold text-[#1F2937] text-sm";
+  nm.className = "font-bold text-[#1F2937] text-sm adm-nombre";
   nm.textContent = titulo;
   const badge = document.createElement("span");
   badge.className = "text-[11px] text-[#64748B]";
   badge.textContent = `${deptos.length} deptos.`;
-  head.appendChild(nm);
+  head.append(colorDot(color), nm);
   head.appendChild(badge);
   const sp = document.createElement("span");
   sp.className = "flex-1";
@@ -403,7 +440,8 @@ function grupoBox(servicioId, titulo, deptos, conAlta) {
     li.className = "py-1.5 border-t border-[#F1F5F9] first:border-t-0 flex items-center gap-2 pl-4";
     li.dataset.cid = d.id;
     const dot = document.createElement("span");
-    dot.className = "w-1.5 h-1.5 rounded-full bg-[#94A3B8] shrink-0";
+    dot.className = "w-1.5 h-1.5 rounded-full shrink-0";
+    dot.style.background = normColor(d.color);
     const spn = document.createElement("span");
     spn.className = "flex-1 text-[#1F2937]";
     spn.textContent = d.nombre;
@@ -425,7 +463,10 @@ function grupoBox(servicioId, titulo, deptos, conAlta) {
     btn.style.padding = "7px 12px";
     btn.textContent = "Añadir";
     btn.onclick = () => crearDepartamento(servicioId);
-    add.append(inp, btn);
+    const col = colorPicker(PALETTE[(state.servicios.length + state.departamentos.length) % PALETTE.length]);
+    col.id = `adm-newdepto-color-${servicioId}`;
+    col.title = "Color del departamento";
+    add.append(inp, col, btn);
     box.appendChild(add);
   }
   return box;
@@ -433,13 +474,15 @@ function grupoBox(servicioId, titulo, deptos, conAlta) {
 
 function editarServicioBox(s, box) {
   const head = box.querySelector("div");
-  const nm = head.querySelector("span");
+  const nm = head.querySelector(".adm-nombre");
   const inp = document.createElement("input");
   inp.className = "inp flex-1";
   inp.value = s.nombre;
+  const col = colorPicker(s.color);
   head.replaceChild(inp, nm);
   head.querySelectorAll("button").forEach(b => b.remove());
-  head.append(miniBtn("Guardar", "adm-save", () => guardarCatalogo("servicios", s.id, inp.value.trim())),
+  head.append(col,
+    miniBtn("Guardar", "adm-save", () => guardarCatalogo("servicios", s.id, inp.value.trim(), col.value)),
     document.createTextNode(" "),
     miniBtn("Cancelar", "", () => loadAdmin()));
   inp.focus();
@@ -451,17 +494,18 @@ function editarDeptoRow(d, li) {
   const inp = document.createElement("input");
   inp.className = "inp flex-1";
   inp.value = d.nombre;
-  li.append(inp,
-    miniBtn("Guardar", "adm-save", () => guardarCatalogo("departamentos", d.id, inp.value.trim())),
+  const col = colorPicker(d.color);
+  li.append(inp, col,
+    miniBtn("Guardar", "adm-save", () => guardarCatalogo("departamentos", d.id, inp.value.trim(), col.value)),
     miniBtn("Cancelar", "", () => loadAdmin()));
   inp.focus();
   inp.select();
 }
 
-async function guardarCatalogo(kind, id, nombre) {
+async function guardarCatalogo(kind, id, nombre, color) {
   if (!nombre) return;
   try {
-    await api(`/api/${kind}/${id}`, { method: "PUT", json: { nombre } });
+    await api(`/api/${kind}/${id}`, { method: "PUT", json: { nombre, color } });
     await refrescarCatalogos();
     loadAdmin();
   } catch (err) {
@@ -819,7 +863,7 @@ async function crearServicio() {
   const input = $("admin-serv-nombre");
   if (!input.value.trim()) return;
   try {
-    await api("/api/servicios", { method: "POST", json: { nombre: input.value.trim() } });
+    await api("/api/servicios", { method: "POST", json: { nombre: input.value.trim(), color: $("admin-serv-color").value } });
     input.value = "";
     await refrescarCatalogos();
     loadAdmin();
@@ -832,7 +876,7 @@ async function crearDepartamento(servicioId) {
   const input = $(`adm-newdepto-${servicioId}`);
   if (!input || !input.value.trim()) return;
   try {
-    await api("/api/departamentos", { method: "POST", json: { nombre: input.value.trim(), servicio_id: servicioId } });
+    await api("/api/departamentos", { method: "POST", json: { nombre: input.value.trim(), servicio_id: servicioId, color: $(`adm-newdepto-color-${servicioId}`).value } });
     await refrescarCatalogos();
     loadAdmin();
   } catch (err) {
@@ -1129,6 +1173,21 @@ function deskEl(desk, desde, hasta) {
     el.classList.add("desk-free");
     el.onclick = () => openModal(desk, undefined, desde, hasta);
   }
+  if (status.state === "occupied" || status.state === "mine") {
+    const ss = serviciosDe(status.reservations);
+    if (ss.length >= 2) {
+      el.style.background = tint(COLOR_SHARED);
+      el.style.borderColor = COLOR_SHARED;
+      el.title = `Compartida: ${ss.map(s => s.nombre).join(" + ")} · Clic para ver`;
+    } else if (ss.length === 1) {
+      el.style.background = tint(ss[0].color);
+      el.style.borderColor = normColor(ss[0].color);
+    }
+    if (status.state === "mine") {
+      el.style.borderColor = "#405060";
+      el.style.borderWidth = "2px";
+    }
+  }
   const fS = state.fServicio, fD = state.fDepto;
   if (fS || fD) {
     const match = status.reservations.some(r =>
@@ -1191,9 +1250,11 @@ function openModal(desk, freeIds, desde, hasta) {
     } else {
       const own = r.usuario.id === state.usuario.id;
       const isAdmin = state.usuario.rol === "admin";
-      txt.className = "text-[#1F2937]";
+      const dot = document.createElement("span");
+      dot.style.cssText = `width:10px;height:10px;border-radius:9999px;flex-shrink:0;background:${normColor(r.departamento.color)}`;
+      txt.className = "text-[#1F2937] flex-1";
       txt.textContent = `${p.codigo} · ${r.servicio.nombre} · ${r.departamento.nombre} · ${cap(r.tipo)}${own ? " (tuya)" : (isAdmin ? ` · ${r.usuario.nombre}` : "")}`;
-      row.appendChild(txt);
+      row.append(dot, txt);
       if (own || isAdmin) {
         const b = document.createElement("button");
         b.className = "btn btn-ghost";
