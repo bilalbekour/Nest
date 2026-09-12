@@ -20,6 +20,11 @@ Herramienta interna para reservar puestos de oficina por fecha y tramo.
 source .venv/bin/activate && pytest -q
 ```
 
+## Copias de seguridad
+
+Automáticas al arrancar y cada día a las 03:00 en `backups/` (se conservan las 7 últimas).
+También desde Admin → Sistema → "Crear copia ahora".
+
 ## Cambiar el plano / puestos
 
 Editar `FLOORS` en `app/config.py`, borrar `nido.db` y re-ejecutar

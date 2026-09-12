@@ -14,6 +14,7 @@ class UsuarioOut(BaseModel):
     username: str
     nombre: str
     rol: str
+    favorito_puesto_id: int | None = None
 
 
 class UsuarioCreate(BaseModel):
@@ -110,6 +111,22 @@ class ReservaLote(BaseModel):
     servicio_id: int
     departamento_id: int
     comentario: str | None = None
+
+
+class ReservaRecurrente(BaseModel):
+    puesto_id: int
+    fecha: date
+    hora_inicio: time
+    hora_fin: time
+    tipo: str
+    servicio_id: int
+    departamento_id: int
+    comentario: str | None = None
+    repeticiones: int
+
+
+class FavoritoIn(BaseModel):
+    puesto_id: int | None = None
 
 
 class ReservaOut(BaseModel):

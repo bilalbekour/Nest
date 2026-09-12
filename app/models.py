@@ -14,6 +14,7 @@ class Usuario(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     nombre: Mapped[str] = mapped_column(String(100))
     rol: Mapped[str] = mapped_column(String(10), default="staff")
+    favorito_puesto_id: Mapped[int | None] = mapped_column(ForeignKey("puestos.id"), nullable=True)
 
 
 class Servicio(Base):

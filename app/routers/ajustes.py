@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth import require_admin, require_staff
+from app.backup import lista, snapshot
 from app.db import get_db
 from app.models import Ajuste, Puesto
 from app.schemas import OrdenZonasIn
@@ -48,3 +49,16 @@ def set_orden_zonas(data: OrdenZonasIn, db: Session = Depends(get_db)):
         db.add(Ajuste(clave=CLAVE_ORDEN, valor=json.dumps(actual)))
     db.commit()
     return actual
+
+
+@router.post("/backup", dependencies=[Depends(require_admin)])
+def crear_backup():
+    try:
+        return {"archivo": snapshot("manual")}
+    except RuntimeError as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(e))
+
+
+@router.get("/backups", dependencies=[Depends(require_admin)])
+def listar_backups():
+    return lista()

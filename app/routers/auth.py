@@ -16,4 +16,5 @@ def login(data: LoginIn, db: Session = Depends(get_db)):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Credenciales inválidas")
     return {"token": create_token(usuario),
             "usuario": {"id": usuario.id, "username": usuario.username,
-                        "nombre": usuario.nombre, "rol": usuario.rol}}
+                        "nombre": usuario.nombre, "rol": usuario.rol,
+                        "favorito_puesto_id": usuario.favorito_puesto_id}}

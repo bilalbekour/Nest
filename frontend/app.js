@@ -120,16 +120,166 @@ function logout() {
 }
 
 function show(view) {
-  ["reservar", "historico", "reporting", "admin"].forEach(v => {
+  ["reservar", "mis", "calendario", "companeros", "historico", "reporting", "admin"].forEach(v => {
     $(v).classList.toggle("hidden", v !== view);
   });
   document.querySelectorAll("[data-nav]").forEach(b => {
     b.classList.toggle("nav-active", b.dataset.nav === view);
   });
   if (view === "reservar") renderPlan();
+  if (view === "mis") loadMisReservas();
+  if (view === "calendario") loadCalendario();
   if (view === "historico") loadHistorico();
   if (view === "reporting") generarInforme();
   if (view === "admin") loadAdmin();
+}
+
+/* ── Mis reservas / Calendario / Compañeros ── */
+function loadMisReservas() {
+  api("/api/mis-reservas").then(rs => {
+    const body = $("mis-body");
+    body.innerHTML = "";
+    if (!rs.length) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 6;
+      td.textContent = "Sin próximas reservas";
+      td.className = "td text-center py-6 text-[#94A3B8]";
+      tr.appendChild(td);
+      body.appendChild(tr);
+      return;
+    }
+    rs.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.className = "border-t border-[#E5E7EB] tr-hov";
+      [`${r.fecha}`, r.puesto.codigo, `${tm(r.hora_inicio)}–${tm(r.hora_fin)}`,
+       cap(r.tipo), r.servicio.nombre].forEach(v => {
+        const td = document.createElement("td");
+        td.className = "td";
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+      const tdA = document.createElement("td");
+      tdA.className = "td";
+      const b = document.createElement("button");
+      b.className = "adm-mini adm-danger";
+      b.textContent = "Cancelar";
+      b.onclick = () => cancelReserva(r.id);
+      tdA.appendChild(b);
+      tr.appendChild(tdA);
+      body.appendChild(tr);
+    });
+  }).catch(err => alert(err.message));
+}
+
+const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+function calPaso(dir) {
+  let y = state.calY, m = state.calM + dir;
+  if (m < 0) { m = 11; y--; }
+  if (m > 11) { m = 0; y++; }
+  state.calY = y;
+  state.calM = m;
+  loadCalendario();
+}
+
+function loadCalendario() {
+  const hoy = new Date();
+  if (state.calY === undefined) {
+    state.calY = hoy.getFullYear();
+    state.calM = hoy.getMonth();
+  }
+  const y = state.calY, m = state.calM;
+  $("cal-titulo").textContent = `${MESES[m]} ${y}`;
+  const desde = `${y}-${String(m + 1).padStart(2, "0")}-01`;
+  const hasta = `${y}-${String(m + 1).padStart(2, "0")}-${new Date(y, m + 1, 0).getDate()}`;
+  api(`/api/ocupacion?desde=${desde}&hasta=${hasta}`).then(ocu => {
+    const grid = $("cal-grid");
+    grid.innerHTML = "";
+    const offset = (new Date(y, m, 1).getDay() + 6) % 7;
+    for (let i = 0; i < offset; i++) grid.appendChild(document.createElement("div"));
+    const cap = state.puestos.filter(p => p.activo).length || 1;
+    const nDias = new Date(y, m + 1, 0).getDate();
+    for (let d = 1; d <= nDias; d++) {
+      const f = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const n = (ocu[f] && ocu[f].total) || 0;
+      const pct = Math.round(n / cap * 100);
+      const b = document.createElement("button");
+      const fondo = pct === 0 ? "background:#fff;border-color:#E5E7EB;color:#1F2937"
+        : pct < 40 ? "background:#E3E9F0;border-color:#B9C6D6;color:#1F2937"
+        : pct < 70 ? "background:#B9C6D6;border-color:#8FA2B8;color:#1F2937"
+        : "background:#405060;border-color:#405060;color:#fff";
+      b.style.cssText = `border:1px solid;border-radius:10px;padding:7px 0 5px;${fondo}`;
+      const dn = document.createElement("div");
+      dn.style.cssText = "font-size:13px;font-weight:700";
+      dn.textContent = d;
+      const pc = document.createElement("div");
+      pc.style.cssText = "font-size:10px;opacity:.75";
+      pc.textContent = pct + "%";
+      b.append(dn, pc);
+      b.title = `${f} · ${n} puestos · ${pct}%`;
+      b.onclick = () => { $("fecha").value = f; show("reservar"); };
+      grid.appendChild(b);
+    }
+  }).catch(err => alert(err.message));
+}
+
+function buscarCompaneros() {
+  const q = $("comp-q").value.trim();
+  $("comp-detalle-wrap").classList.add("hidden");
+  api(`/api/usuarios/buscar?q=${encodeURIComponent(q)}`).then(us => {
+    const box = $("comp-result");
+    box.innerHTML = "";
+    if (!us.length) {
+      const p = document.createElement("p");
+      p.className = "text-sm text-[#94A3B8]";
+      p.textContent = q ? "Sin resultados" : "Escribe un nombre o usuario";
+      box.appendChild(p);
+      return;
+    }
+    us.forEach(u => {
+      const row = document.createElement("div");
+      row.className = "flex items-center gap-3 rounded-lg border border-[#E5E7EB] px-3 py-2";
+      const av = document.createElement("span");
+      av.className = "w-8 h-8 rounded-full bg-[#EDF2F7] text-[#405060] flex items-center justify-center font-bold text-sm shrink-0";
+      av.textContent = (u.nombre || "?")[0].toUpperCase();
+      const tx = document.createElement("span");
+      tx.className = "flex-1 text-sm text-[#1F2937]";
+      tx.textContent = `${u.nombre} · ${u.username} (${u.rol})`;
+      const b = document.createElement("button");
+      b.className = "adm-mini";
+      b.textContent = "Ver";
+      b.onclick = () => verCompanero(u.id, u.nombre);
+      row.append(av, tx, b);
+      box.appendChild(row);
+    });
+  }).catch(err => alert(err.message));
+}
+
+function verCompanero(id, nombre) {
+  api(`/api/reservas/usuario/${id}`).then(rs => {
+    $("comp-detalle-wrap").classList.remove("hidden");
+    $("comp-detalle-titulo").textContent = `Próximas reservas de ${nombre}`;
+    const box = $("comp-detalle");
+    box.innerHTML = "";
+    if (!rs.length) {
+      const p = document.createElement("p");
+      p.className = "text-sm text-[#94A3B8]";
+      p.textContent = "Sin próximas reservas";
+      box.appendChild(p);
+      return;
+    }
+    rs.forEach(r => {
+      const row = document.createElement("div");
+      row.className = "flex items-center gap-2 text-sm text-[#1F2937] rounded-lg border border-[#E5E7EB] px-3 py-2";
+      const txt = document.createElement("span");
+      txt.className = "flex-1";
+      txt.textContent = `${r.fecha} · ${r.puesto.codigo} · ${tm(r.hora_inicio)}–${tm(r.hora_fin)} · ${cap(r.tipo)} · ${r.servicio.nombre}`;
+      row.appendChild(txt);
+      box.appendChild(row);
+    });
+  }).catch(err => alert(err.message));
 }
 
 /* ── Histórico ── */
@@ -152,6 +302,31 @@ function limpiarHistorico() {
   $("hist-departamento").value = "";
   $("hist-tipo").value = "";
   loadHistorico();
+}
+
+async function exportarCSV(origen) {
+  const g = id => $(id).value;
+  const f = origen === "historico"
+    ? { fecha_desde: g("hist-fecha-desde"), fecha_hasta: g("hist-fecha-hasta"),
+        servicio_id: g("hist-servicio"), departamento_id: g("hist-departamento"), tipo: g("hist-tipo") }
+    : { fecha_desde: g("rep-fecha-desde"), fecha_hasta: g("rep-fecha-hasta"),
+        servicio_id: g("rep-servicio"), departamento_id: g("rep-departamento"), tipo: g("rep-tipo") };
+  const p = new URLSearchParams();
+  Object.entries(f).forEach(([k, v]) => { if (v) p.set(k, v); });
+  const qs = p.toString();
+  try {
+    const r = await fetch(`/api/historico/export${qs ? "?" + qs : ""}`,
+      { headers: { Authorization: "Bearer " + state.token } });
+    if (!r.ok) throw new Error("Error al exportar");
+    const blob = await r.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "historico.csv";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  } catch (err) {
+    alert(err.message);
+  }
 }
 
 function renderHist(reservas) {
@@ -366,7 +541,7 @@ function renderInforme(rs) {
 /* ── Admin ── */
 function showAdminTab(name) {
   state.adminTab = name;
-  ["usuarios", "servicios", "puestos"].forEach(t => {
+  ["usuarios", "servicios", "puestos", "sistema"].forEach(t => {
     $(`adm-tab-${t}`).classList.toggle("hidden", t !== name);
   });
   document.querySelectorAll("[data-admintab]").forEach(b => {
@@ -921,8 +1096,38 @@ function loadAdmin() {
       renderGrupos();
       renderAdminUsuarios(users);
       loadPuestosAdmin();
+      cargarBackups();
     })
     .catch(err => alert(err.message));
+}
+
+function cargarBackups() {
+  api("/api/ajustes/backups").then(fs => {
+    const ul = $("backup-list");
+    ul.innerHTML = "";
+    if (!fs.length) {
+      const li = document.createElement("li");
+      li.className = "text-[#94A3B8]";
+      li.textContent = "Aún no hay copias";
+      ul.appendChild(li);
+      return;
+    }
+    fs.forEach(f => {
+      const li = document.createElement("li");
+      li.textContent = f;
+      ul.appendChild(li);
+    });
+  }).catch(() => {});
+}
+
+async function crearBackup() {
+  try {
+    const r = await api("/api/ajustes/backup", { method: "POST" });
+    alert(`Copia creada: ${r.archivo}`);
+    cargarBackups();
+  } catch (err) {
+    alert(err.message);
+  }
 }
 
 async function crearServicio() {
@@ -1074,6 +1279,31 @@ function renderResumen() {
   $("res-ocupados").textContent = ocup;
   $("res-pct").textContent = (total > 0 ? Math.round(ocup / total * 100) : 0) + "%";
   $("resumen-sub").textContent = `${state.fecha} · ${tm(desde)}–${tm(hasta)}`;
+
+  const capPl = {}, ocuPl = {}, mapaPl = {};
+  state.puestos.forEach(p => {
+    mapaPl[p.id] = p.planta;
+    if (p.activo) capPl[p.planta] = (capPl[p.planta] || 0) + 1;
+  });
+  Object.keys(resByPos).forEach(pid => {
+    const pl = mapaPl[+pid];
+    if (pl !== undefined) ocuPl[pl] = (ocuPl[pl] || 0) + 1;
+  });
+  const af = $("res-aforo");
+  af.innerHTML = "";
+  Object.keys(capPl).sort().forEach(pl => {
+    const o = ocuPl[pl] || 0, t = capPl[pl];
+    const pc = t ? Math.round(o / t * 100) : 0;
+    const chip = document.createElement("span");
+    chip.className = "inline-flex items-center gap-1.5 font-semibold";
+    const dot = document.createElement("span");
+    dot.style.cssText = `width:9px;height:9px;border-radius:9999px;background:${pc < 70 ? "#27AE60" : pc < 90 ? "#D9A35E" : "#B4443C"}`;
+    const tx = document.createElement("span");
+    tx.textContent = `P${pl} · ${o}/${t}`;
+    tx.title = `${pc}% ocupación`;
+    chip.append(dot, tx);
+    af.appendChild(chip);
+  });
 
   const byServ = {}, byDep = {};
   const byTipo = { agente: 0, staff: 0, visita: 0 };
@@ -1416,6 +1646,7 @@ function fillDeptosForServicio() {
 function openModal(desk, freeIds, desde, hasta) {
   modalDesk = desk;
   state.modalModo = "single";
+  state.modalCtx = { desk, freeIds, desde, hasta };
   $("modal-masiva").classList.add("hidden");
   $("modal-save-lote").classList.add("hidden");
   $("modal-form").classList.remove("hidden");
@@ -1447,6 +1678,13 @@ function openModal(desk, freeIds, desde, hasta) {
       txt.className = "text-[#1F2937] flex-1";
       txt.textContent = `${p.codigo} · ${r.servicio.nombre} · ${r.departamento.nombre} · ${cap(r.tipo)}${own ? " (tuya)" : (isAdmin ? ` · ${r.usuario.nombre}` : "")}`;
       row.append(dot, txt);
+      const fav = document.createElement("button");
+      const esFav = state.usuario.favorito_puesto_id === p.id;
+      fav.textContent = "★";
+      fav.title = esFav ? "Quitar de favorito" : "Marcar como mi puesto";
+      fav.style.cssText = `font-size:15px;line-height:1;color:${esFav ? "#C06848" : "#CBD5E1"}`;
+      fav.onclick = () => setFavorito(esFav ? null : p.id);
+      row.appendChild(fav);
       if (own || isAdmin) {
         const b = document.createElement("button");
         b.className = "btn btn-ghost";
@@ -1475,18 +1713,56 @@ function openModal(desk, freeIds, desde, hasta) {
 
 function closeModal() { $("modal").classList.add("hidden"); modalDesk = null; state.modalModo = null; }
 
+async function setFavorito(pid) {
+  try {
+    const u = await api("/api/usuarios/yo/favorito", { method: "PUT", json: { puesto_id: pid } });
+    state.usuario.favorito_puesto_id = u.favorito_puesto_id;
+    localStorage.setItem("nido_usuario", JSON.stringify(state.usuario));
+    if (state.modalModo === "single" && state.modalCtx && !$("modal").classList.contains("hidden")) {
+      const c = state.modalCtx;
+      openModal(c.desk, c.freeIds, c.desde, c.hasta);
+    }
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function irAFavorito() {
+  const fid = state.usuario && state.usuario.favorito_puesto_id;
+  if (!fid) {
+    alert("Marca tu puesto con ★ en cualquier mesa");
+    return;
+  }
+  const p = (state.puestos || []).find(x => x.id === fid);
+  if (!p || !p.activo) {
+    alert("Tu puesto ya no está disponible");
+    return;
+  }
+  const desk = groupDesks(state.puestos).find(d => d.ids.includes(fid));
+  if (!desk) return;
+  openModal(desk, undefined, state.desde, state.hasta);
+}
+
 async function saveReserva() {
   if (!modalDesk) return;
+  const rep = Math.min(12, Math.max(1, +$("modal-repeticiones").value || 1));
+  const body = {
+    puesto_id: +$("modal-puesto").value,
+    fecha: state.fecha,
+    hora_inicio: state.desde + ":00",
+    hora_fin: state.hasta + ":00",
+    tipo: $("modal-tipo").value,
+    servicio_id: +$("modal-servicio").value,
+    departamento_id: +$("modal-departamento").value,
+  };
   try {
-    await api("/api/reservas", { method: "POST", json: {
-      puesto_id: +$("modal-puesto").value,
-      fecha: state.fecha,
-      hora_inicio: state.desde + ":00",
-      hora_fin: state.hasta + ":00",
-      tipo: $("modal-tipo").value,
-      servicio_id: +$("modal-servicio").value,
-      departamento_id: +$("modal-departamento").value,
-    }});
+    if (rep > 1) {
+      await api("/api/reservas/recurrente", { method: "POST",
+        json: { ...body, comentario: null, repeticiones: rep } });
+      alert(`Creadas ${rep} reservas semanales`);
+    } else {
+      await api("/api/reservas", { method: "POST", json: body });
+    }
     closeModal();
     renderPlan();
   } catch (err) {
@@ -1500,6 +1776,7 @@ async function cancelReserva(id) {
     await api(`/api/reservas/${id}/cancelar`, { method: "POST" });
     closeModal();
     renderPlan();
+    if (!$("mis").classList.contains("hidden")) loadMisReservas();
   } catch (err) {
     alert(err.message);
   }
