@@ -95,13 +95,8 @@ def delete_departamento(departamento_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/puestos", response_model=list[PuestoOut])
-def list_puestos(todos: bool = False, db: Session = Depends(get_db), usuario: Usuario = Depends(require_staff)):
-    if todos and usuario.rol != "admin":
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Solo admin")
-    q = db.query(Puesto).order_by(Puesto.codigo)
-    if not todos:
-        q = q.filter_by(activo=True)
-    return q.all()
+def list_puestos(db: Session = Depends(get_db), _=Depends(require_staff)):
+    return db.query(Puesto).order_by(Puesto.codigo).all()
 
 
 @router.patch("/puestos/{puesto_id}", response_model=PuestoOut, dependencies=[Depends(require_admin)])

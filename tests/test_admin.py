@@ -137,18 +137,15 @@ def test_reserva_departamento_de_otro_servicio_400(client):
                        "hora_fin": "11:00", "servicio_id": 9999}).status_code == 404
 
 
-def test_patch_puesto_y_list_todos(client):
+def test_patch_puesto_activo_visible_deshabilitado(client):
     h = admin_h(client)
     hs = auth_headers(client)
     pid = client.get("/api/puestos", headers=hs).json()[0]["id"]
     assert client.patch(f"/api/puestos/{pid}", headers=h, json={"activo": False}).status_code == 200
-    assert len(client.get("/api/puestos", headers=hs).json()) == 209
-    todos = client.get("/api/puestos?todos=true", headers=h).json()
+    todos = client.get("/api/puestos", headers=hs).json()
     assert len(todos) == 210
     assert [p for p in todos if p["id"] == pid][0]["activo"] is False
-    assert client.get("/api/puestos?todos=true", headers=hs).status_code == 403
     assert client.patch(f"/api/puestos/{pid}", headers=h, json={"activo": True}).status_code == 200
-    assert len(client.get("/api/puestos", headers=hs).json()) == 210
     assert client.patch("/api/puestos/9999", headers=h, json={"activo": False}).status_code == 404
 
 

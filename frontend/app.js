@@ -221,9 +221,10 @@ function limpiarReporting() {
 
 function renderInforme(rs) {
   const activas = rs.filter(r => !r.cancelada);
-  const totalPuestos = state.puestos.length;
+  const puestosActivos = state.puestos.filter(p => p.activo);
+  const totalPuestos = puestosActivos.length;
   const capZona = {};
-  state.puestos.forEach(p => {
+  puestosActivos.forEach(p => {
     const k = `${p.planta}|${p.zona}`;
     capZona[k] = (capZona[k] || 0) + 1;
   });
@@ -582,10 +583,34 @@ async function eliminarUsuario(id) {
 }
 
 function loadPuestosAdmin() {
-  api("/api/puestos?todos=true").then(ps => {
+  api("/api/puestos").then(ps => {
     state.adminPuestos = ps;
+    fillAdminPuestoSelects();
     renderPuestosAdmin();
   }).catch(err => alert(err.message));
+}
+
+function fillAdminPuestoSelects() {
+  const pls = [...new Set(state.adminPuestos.map(p => p.planta))].sort((a, b) => b - a);
+  const zns = [...new Set(state.adminPuestos.map(p => p.zona))].sort();
+  const selP = $("adm-puesto-planta"), selZ = $("adm-puesto-zona");
+  const curP = selP.value, curZ = selZ.value;
+  selP.innerHTML = "";
+  selZ.innerHTML = "";
+  pls.forEach(p => {
+    const o = document.createElement("option");
+    o.value = p;
+    o.textContent = `Planta ${p}`;
+    selP.appendChild(o);
+  });
+  zns.forEach(z => {
+    const o = document.createElement("option");
+    o.value = z;
+    o.textContent = `Zona ${z}`;
+    selZ.appendChild(o);
+  });
+  if (pls.map(String).includes(curP)) selP.value = curP;
+  if (zns.includes(curZ)) selZ.value = curZ;
 }
 
 function renderPuestosAdmin() {
@@ -736,14 +761,20 @@ function overlaps(r, desde, hasta) {
 }
 
 function deskStatus(desk, desde, hasta) {
+  const activeIds = desk.ids.filter(id => {
+    const p = desk.positions.find(x => x.id === id);
+    return p && p.activo;
+  });
+  if (!activeIds.length) return { state: "disabled", reservations: [] };
+  const activeSet = new Set(activeIds);
   const resByPos = {};
   state.reservas.forEach(r => {
-    if (overlaps(r, desde, hasta)) resByPos[r.puesto.id] = r;
+    if (overlaps(r, desde, hasta) && activeSet.has(r.puesto.id)) resByPos[r.puesto.id] = r;
   });
   const mine = state.reservas.filter(r =>
-    overlaps(r, desde, hasta) && r.usuario.id === state.usuario.id && desk.ids.includes(r.puesto.id));
-  const occupied = desk.ids.filter(id => resByPos[id]);
-  const free = desk.ids.filter(id => !resByPos[id]);
+    overlaps(r, desde, hasta) && r.usuario.id === state.usuario.id && activeIds.includes(r.puesto.id));
+  const occupied = activeIds.filter(id => resByPos[id]);
+  const free = activeIds.filter(id => !resByPos[id]);
   if (occupied.length === 0) return { state: "free", reservations: [] };
   if (free.length === 0) return mine.length
     ? { state: "mine", reservations: mine, freeIds: free }
@@ -794,11 +825,12 @@ function emptyRow(container, msg) {
 
 function renderResumen() {
   const { desde, hasta } = state;
+  const activos = new Set(state.puestos.filter(p => p.activo).map(p => p.id));
   const resByPos = {};
   state.reservas.forEach(r => {
-    if (overlaps(r, desde, hasta)) resByPos[r.puesto.id] = r;
+    if (overlaps(r, desde, hasta) && activos.has(r.puesto.id)) resByPos[r.puesto.id] = r;
   });
-  const total = state.puestos.length;
+  const total = activos.size;
   const ocup = Object.keys(resByPos).length;
   const libres = total - ocup;
   $("res-libres").textContent = libres;
@@ -932,7 +964,10 @@ function deskEl(desk, desde, hasta) {
   el.innerHTML = `${deskSVG()}<span class="text-[9px] leading-none mt-0.5 text-[#64748B]">${desk.posRange}</span>`;
   el.title = desk.codigos.join(" · ");
 
-  if (status.state === "mine") {
+  if (status.state === "disabled") {
+    el.classList.add("desk-disabled", "cursor-default");
+    el.title = "Deshabilitado";
+  } else if (status.state === "mine") {
     const r = status.reservations[0];
     el.classList.add("desk-mine");
     el.title = `Tu reserva · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para ver y cancelar`;
@@ -957,7 +992,7 @@ function deskEl(desk, desde, hasta) {
     if (match) {
       el.classList.add("desk-match");
       el.title = "Coincide con el filtro · " + el.title;
-    } else if (status.state !== "free") {
+    } else if (status.state !== "free" && status.state !== "disabled") {
       el.classList.add("desk-dim");
     }
   }
@@ -1001,7 +1036,11 @@ function openModal(desk, freeIds, desde, hasta) {
     const row = document.createElement("div");
     row.className = "flex items-center justify-between gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2 text-[13px]";
     const txt = document.createElement("span");
-    if (!r) {
+    if (!p.activo) {
+      txt.className = "text-[#94A3B8]";
+      txt.textContent = `${p.codigo} · Deshabilitado`;
+      row.appendChild(txt);
+    } else if (!r) {
       txt.className = "text-[#64748B]";
       txt.textContent = `${p.codigo} · Libre`;
       row.appendChild(txt);
@@ -1025,7 +1064,7 @@ function openModal(desk, freeIds, desde, hasta) {
   }
   const posSelect = $("modal-puesto");
   posSelect.innerHTML = "";
-  const positions = freeIds ? desk.positions.filter(p => freeIds.includes(p.id)) : desk.positions;
+  const positions = desk.positions.filter(p => p.activo && (!freeIds || freeIds.includes(p.id)));
   for (const p of positions) {
     const opt = document.createElement("option");
     opt.value = p.id;
