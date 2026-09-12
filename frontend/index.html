@@ -12,6 +12,7 @@
     body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: #F1F5F9; }
     .inp { border: 1px solid #E2E4E9; background: #FFF; border-radius: 10px; padding: 8px 12px; font-size: 13px; color: #1F2937; outline: none; transition: border-color .15s, box-shadow .15s; }
     .inp:focus { border-color: #405060; box-shadow: 0 0 0 3px rgba(64,80,96,.12); }
+    .inp:disabled { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; }
     .btn { border-radius: 10px; padding: 9px 16px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; transition: filter .15s, transform .05s; color: #fff; }
     .btn:active { transform: translateY(1px); }
     .btn-navy { background: #405060; }
@@ -167,7 +168,7 @@
       </div>
       <div>
         <label class="block text-xs font-semibold sub mb-1.5">Servicio</label>
-        <select id="filtro-servicio" class="inp" onchange="renderPlan()"></select>
+        <select id="filtro-servicio" class="inp" onchange="cambioFiltroServicio()"></select>
       </div>
       <div>
         <label class="block text-xs font-semibold sub mb-1.5">Departamento</label>
@@ -471,6 +472,22 @@
         <div id="modal-info" class="space-y-2"></div>
         <div id="modal-masiva" class="hidden space-y-3">
           <p id="modal-masiva-info" class="text-sm text-[#1F2937]"></p>
+          <div>
+            <label class="block text-xs font-semibold sub mb-1.5">Tipo</label>
+            <select id="modal-lote-tipo" class="inp w-full">
+              <option value="agente">Agente</option>
+              <option value="staff">Staff</option>
+              <option value="visita">Visita</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold sub mb-1.5">Servicio</label>
+            <select id="modal-lote-servicio" class="inp w-full" onchange="fillDeptosLote()"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold sub mb-1.5">Departamento</label>
+            <select id="modal-lote-departamento" class="inp w-full"></select>
+          </div>
           <div>
             <label class="block text-xs font-semibold sub mb-1.5">Motivo (obligatorio)</label>
             <textarea id="modal-comentario" rows="3" class="inp w-full" placeholder="¿Por qué esta reserva masiva o visita?"></textarea>

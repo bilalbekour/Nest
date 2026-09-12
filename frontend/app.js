@@ -54,6 +54,7 @@ function fillHistSelect(el, items) {
   all.value = "";
   all.textContent = "Todos";
   el.prepend(all);
+  el.value = "";
 }
 
 /* ── Login ── */
@@ -100,6 +101,7 @@ function enter() {
       fillHistSelect($("filtro-departamento"), d);
       fillHistSelect($("rep-servicio"), s);
       fillHistSelect($("rep-departamento"), d);
+      actualizaFiltroDepto();
       renderPlan();
     })
     .catch(() => logout());
@@ -850,7 +852,39 @@ function refrescarCatalogos() {
       fillHistSelect($("filtro-departamento"), d);
       fillHistSelect($("rep-servicio"), s);
       fillHistSelect($("rep-departamento"), d);
+      actualizaFiltroDepto();
     });
+}
+
+function actualizaFiltroDepto() {
+  const sid = +$("filtro-servicio").value || null;
+  const sel = $("filtro-departamento");
+  const cur = sel.value;
+  sel.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "Todos";
+  sel.appendChild(all);
+  if (!sid) {
+    sel.value = "";
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  state.departamentos
+    .filter(dep => !dep.servicio_id || dep.servicio_id === sid)
+    .forEach(dep => {
+      const o = document.createElement("option");
+      o.value = dep.id;
+      o.textContent = dep.nombre;
+      sel.appendChild(o);
+    });
+  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+
+function cambioFiltroServicio() {
+  actualizaFiltroDepto();
+  renderPlan();
 }
 
 function loadAdmin() {
@@ -1270,11 +1304,36 @@ function openModalLote() {
   $("modal-title").textContent = `Reserva masiva · ${ids.length} puestos`;
   $("modal-info").innerHTML = "";
   $("modal-masiva-info").textContent = `${ids.length} puestos · ${state.fecha} · ${state.desde}–${state.hasta}`;
+  fillServiciosLote();
+  fillDeptosLote();
   $("modal-form").classList.add("hidden");
   $("modal-masiva").classList.remove("hidden");
   $("modal-save").classList.add("hidden");
   $("modal-save-lote").classList.remove("hidden");
   $("modal").classList.remove("hidden");
+}
+
+function fillServiciosLote() {
+  const sel = $("modal-lote-servicio");
+  const cur = sel.value;
+  fillSelect(sel, state.servicios);
+  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+
+function fillDeptosLote() {
+  const sid = +$("modal-lote-servicio").value || null;
+  const sel = $("modal-lote-departamento");
+  const cur = sel.value;
+  sel.innerHTML = "";
+  state.departamentos
+    .filter(d => !d.servicio_id || (sid && d.servicio_id === sid))
+    .forEach(d => {
+      const o = document.createElement("option");
+      o.value = d.id;
+      o.textContent = d.nombre;
+      sel.appendChild(o);
+    });
+  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
 }
 
 async function saveLote() {
@@ -1290,9 +1349,9 @@ async function saveLote() {
       fecha: state.fecha,
       hora_inicio: state.desde + ":00",
       hora_fin: state.hasta + ":00",
-      tipo: $("modal-tipo").value,
-      servicio_id: +$("modal-servicio").value,
-      departamento_id: +$("modal-departamento").value,
+      tipo: $("modal-lote-tipo").value,
+      servicio_id: +$("modal-lote-servicio").value,
+      departamento_id: +$("modal-lote-departamento").value,
       comentario,
     }});
     state.masivaSel = new Set();
