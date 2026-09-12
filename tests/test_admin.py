@@ -231,3 +231,17 @@ def test_delete_planta(client):
     assert rest == []
     assert client.delete("/api/plantas/8", headers=h).status_code == 404
     assert client.delete("/api/plantas/8", headers=hs).status_code == 403
+
+
+def test_orden_zonas(client):
+    h = admin_h(client)
+    hs = auth_headers(client)
+    assert client.get("/api/ajustes/orden_zonas", headers=hs).json() == {}
+    r = client.put("/api/ajustes/orden_zonas", headers=h, json={"orden": {"2": ["ZD", "ZI"]}})
+    assert r.status_code == 200 and r.json() == {"2": ["ZD", "ZI"]}
+    assert client.get("/api/ajustes/orden_zonas", headers=hs).json() == {"2": ["ZD", "ZI"]}
+    assert client.put("/api/ajustes/orden_zonas", headers=h, json={"orden": {"2": ["ZI"]}}).status_code == 400
+    assert client.put("/api/ajustes/orden_zonas", headers=h, json={"orden": {"2": ["ZI", "ZD", "ZX"]}}).status_code == 400
+    assert client.put("/api/ajustes/orden_zonas", headers=h, json={"orden": {"9": ["ZI"]}}).status_code == 400
+    assert client.put("/api/ajustes/orden_zonas", headers=hs, json={"orden": {"2": ["ZI", "ZD"]}}).status_code == 403
+    assert client.get("/api/ajustes/orden_zonas").status_code == 401

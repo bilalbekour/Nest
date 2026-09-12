@@ -82,6 +82,10 @@ class PuestoLote(BaseModel):
     lados: dict[int, int]
 
 
+class OrdenZonasIn(BaseModel):
+    orden: dict[str, list[str]]
+
+
 class ReservaCreate(BaseModel):
     puesto_id: int
     fecha: date

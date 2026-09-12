@@ -67,10 +67,12 @@ function enter() {
   $("nav-user").textContent = `${state.usuario.nombre} (${state.usuario.rol})`;
   $("fecha").value = todayStr();
   show("reservar");
-  Promise.all([api("/api/servicios"), api("/api/departamentos")])
-    .then(([s, d]) => {
+  Promise.all([api("/api/servicios"), api("/api/departamentos"),
+               api("/api/ajustes/orden_zonas").catch(() => ({}))])
+    .then(([s, d, o]) => {
       state.servicios = s;
       state.departamentos = d;
+      state.ordenZonas = o || {};
       fillSelect($("modal-servicio"), s);
       fillSelect($("modal-departamento"), d);
       fillHistSelect($("hist-servicio"), s);
@@ -632,8 +634,76 @@ function toggleZonaNueva() {
   $("adm-np-zona-new-wrap").classList.toggle("hidden", $("adm-np-zona").value !== "__new__");
 }
 
+function zonasPlanta(pl) {
+  const zns = [...new Set((state.adminPuestos || []).filter(p => String(p.planta) === String(pl)).map(p => p.zona))];
+  const orden = state.ordenZonas && state.ordenZonas[String(pl)];
+  if (orden && orden.length) {
+    const idx = z => {
+      const i = orden.indexOf(z);
+      return i === -1 ? 999 : i;
+    };
+    zns.sort((a, b) => idx(a) - idx(b));
+  } else {
+    zns.sort();
+  }
+  return zns;
+}
+
+function renderOrdenZonas() {
+  const pl = $("adm-puesto-planta").value;
+  const cont = $("adm-orden-zonas");
+  cont.innerHTML = "";
+  const zns = zonasPlanta(pl);
+  if (zns.length < 2) {
+    const s = document.createElement("span");
+    s.className = "text-xs text-[#94A3B8]";
+    s.textContent = zns.length ? "Una sola zona" : "Sin zonas";
+    cont.appendChild(s);
+    return;
+  }
+  zns.forEach((z, i) => {
+    const pill = document.createElement("span");
+    pill.className = "inline-flex items-center gap-1 rounded-lg border border-[#E5E7EB] bg-[#F8FAFC] px-1.5 py-1 text-xs font-semibold text-[#405060]";
+    const bl = document.createElement("button");
+    bl.className = "adm-mini";
+    bl.style.padding = "1px 7px";
+    bl.textContent = "◀";
+    bl.title = "Mover a la izquierda";
+    bl.disabled = i === 0;
+    bl.style.opacity = i === 0 ? ".4" : "1";
+    bl.onclick = () => moverZona(pl, i, -1);
+    const nm = document.createElement("span");
+    nm.textContent = z;
+    const br = document.createElement("button");
+    br.className = "adm-mini";
+    br.style.padding = "1px 7px";
+    br.textContent = "▶";
+    br.title = "Mover a la derecha";
+    br.disabled = i === zns.length - 1;
+    br.style.opacity = i === zns.length - 1 ? ".4" : "1";
+    br.onclick = () => moverZona(pl, i, 1);
+    pill.append(bl, nm, br);
+    cont.appendChild(pill);
+  });
+}
+
+function moverZona(pl, i, dir) {
+  const zns = zonasPlanta(pl);
+  const j = i + dir;
+  if (j < 0 || j >= zns.length) return;
+  [zns[i], zns[j]] = [zns[j], zns[i]];
+  state.ordenZonas = { ...(state.ordenZonas || {}), [String(pl)]: zns };
+  api("/api/ajustes/orden_zonas", { method: "PUT", json: { orden: state.ordenZonas } })
+    .then(o => { state.ordenZonas = o; renderOrdenZonas(); })
+    .catch(err => {
+      alert(err.message);
+      api("/api/ajustes/orden_zonas").then(o => { state.ordenZonas = o; renderOrdenZonas(); }).catch(() => {});
+    });
+}
+
 function renderPuestosAdmin() {
   const pl = $("adm-puesto-planta").value, zo = $("adm-puesto-zona").value;
+  renderOrdenZonas();
   const list = (state.adminPuestos || []).filter(p => String(p.planta) === pl && p.zona === zo);
   const grid = $("adm-puestos-grid");
   grid.innerHTML = "";
@@ -926,6 +996,23 @@ function renderResumen() {
 }
 
 /* ── Render plan ── */
+function ordenarZonas(zonas, planta) {
+  const orden = state.ordenZonas && state.ordenZonas[String(planta)];
+  if (orden && orden.length) {
+    const idx = z => {
+      const i = orden.indexOf(z);
+      return i === -1 ? 999 : i;
+    };
+    return [...zonas].sort((a, b) => idx(a) - idx(b));
+  }
+  const minId = {};
+  state.puestos.forEach(p => {
+    if (p.planta !== planta) return;
+    if (minId[p.zona] === undefined || p.id < minId[p.zona]) minId[p.zona] = p.id;
+  });
+  return [...zonas].sort((a, b) => (minId[a] ?? 1e12) - (minId[b] ?? 1e12));
+}
+
 function renderPlan() {
   const fecha = $("fecha").value || todayStr();
   const desde = $("desde").value || "08:00";
@@ -953,8 +1040,8 @@ function renderPlan() {
       card.className = "card plan-card p-5";
       card.innerHTML = `<h3 class="font-extrabold text-base text-[#1F2937] mb-3">Planta ${planta}</h3>`;
 
-      const zonas = [...new Set(pDesks.map(d => d.zona))];
-      const hasTwoZones = zonas.length === 2;
+      const zonas = ordenarZonas([...new Set(pDesks.map(d => d.zona))], planta);
+      const multiZona = zonas.length >= 2;
 
       const zonasRow = document.createElement("div");
       zonasRow.className = "flex gap-0 items-start";
@@ -993,7 +1080,7 @@ function renderPlan() {
 
         zonasRow.appendChild(zonaEl);
 
-        if (hasTwoZones && zi === 0) {
+        if (multiZona && zi < zonas.length - 1) {
           const pasillo = document.createElement("div");
           pasillo.className = "w-8 flex flex-col items-center justify-center self-stretch pt-8";
           pasillo.innerHTML = `<div class="div-v flex-1"></div><span class="text-[10px] text-[#94A3B8] rotate-90 whitespace-nowrap my-2 tracking-wider">PASILLO</span><div class="div-v flex-1"></div>`;
@@ -1001,7 +1088,7 @@ function renderPlan() {
         }
       });
 
-      if (!hasTwoZones) {
+      if (!multiZona) {
         const placeholder = document.createElement("div");
         placeholder.className = "flex-1 border-2 border-dashed border-[#CBD5E1] rounded-lg flex items-center justify-center h-48 text-[#94A3B8] bg-[#F8FAFC]";
         placeholder.textContent = "No disponible";
