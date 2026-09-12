@@ -68,6 +68,7 @@ class Reserva(Base):
     departamento_id: Mapped[int] = mapped_column(ForeignKey("departamentos.id"))
     usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
     cancelada: Mapped[bool] = mapped_column(Boolean, default=False)
+    comentario: Mapped[str | None] = mapped_column(Text, nullable=True)
     creado_en: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     puesto: Mapped["Puesto"] = relationship()

@@ -85,3 +85,54 @@ def test_admin_cancela_reserva_ajena(client):
 def test_cancelar_inexistente(client):
     h = auth_headers(client)
     assert client.post("/api/reservas/999999/cancelar", headers=h).status_code == 404
+
+
+def test_reserva_lote_ok(client):
+    from conftest import auth_headers
+    h = auth_headers(client)
+    servs = client.get("/api/servicios", headers=h).json()
+    deps = client.get("/api/departamentos", headers=h).json()
+    s = servs[0]
+    d = [x for x in deps if x["servicio_id"] == s["id"]][0]
+    puestos = [p["id"] for p in client.get("/api/puestos", headers=h).json()[:4]]
+    body = {"puesto_ids": puestos, "fecha": "2026-09-07", "hora_inicio": "09:00",
+            "hora_fin": "11:00", "tipo": "visita", "servicio_id": s["id"],
+            "departamento_id": d["id"], "comentario": "Visita de clientes"}
+    r = client.post("/api/reservas/lote", headers=h, json=body)
+    assert r.status_code == 201
+    creadas = r.json()
+    assert len(creadas) == 4
+    assert all(x["comentario"] == "Visita de clientes" for x in creadas)
+    assert len(client.get("/api/historico", headers=h).json()) == 4
+
+
+def test_reserva_lote_validaciones(client):
+    from conftest import auth_headers
+    h = auth_headers(client)
+    s = client.get("/api/servicios", headers=h).json()[0]
+    d = client.get("/api/departamentos", headers=h).json()[0]
+    p1 = client.get("/api/puestos", headers=h).json()[0]["id"]
+    base = {"puesto_ids": [p1], "fecha": "2026-09-07", "hora_inicio": "09:00",
+            "hora_fin": "11:00", "tipo": "staff", "servicio_id": s["id"],
+            "departamento_id": d["id"], "comentario": "Formación"}
+    assert client.post("/api/reservas/lote", headers=h, json={**base, "comentario": "  "}).status_code == 400
+    assert client.post("/api/reservas/lote", headers=h, json={**base, "puesto_ids": []}).status_code == 400
+    assert client.post("/api/reservas/lote", headers=h, json={**base, "tipo": "otro"}).status_code == 400
+    assert client.post("/api/reservas/lote", headers=h, json={**base, "puesto_ids": [9999]}).status_code == 404
+
+
+def test_reserva_lote_conflicto_sin_parciales(client):
+    from conftest import auth_headers
+    h = auth_headers(client)
+    s = client.get("/api/servicios", headers=h).json()[0]
+    d = client.get("/api/departamentos", headers=h).json()[0]
+    puestos = [p["id"] for p in client.get("/api/puestos", headers=h).json()[:3]]
+    uno = {"puesto_id": puestos[0], "fecha": "2026-09-07", "hora_inicio": "09:00",
+           "hora_fin": "11:00", "tipo": "staff", "servicio_id": s["id"], "departamento_id": d["id"]}
+    assert client.post("/api/reservas", headers=h, json=uno).status_code == 201
+    lote = {"puesto_ids": puestos, "fecha": "2026-09-07", "hora_inicio": "10:00",
+            "hora_fin": "12:00", "tipo": "staff", "servicio_id": s["id"],
+            "departamento_id": d["id"], "comentario": "Jornada"}
+    r = client.post("/api/reservas/lote", headers=h, json=lote)
+    assert r.status_code == 409
+    assert len(client.get("/api/historico", headers=h).json()) == 1

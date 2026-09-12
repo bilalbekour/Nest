@@ -98,6 +98,18 @@ class ReservaCreate(BaseModel):
     tipo: str
     servicio_id: int
     departamento_id: int
+    comentario: str | None = None
+
+
+class ReservaLote(BaseModel):
+    puesto_ids: list[int]
+    fecha: date
+    hora_inicio: time
+    hora_fin: time
+    tipo: str
+    servicio_id: int
+    departamento_id: int
+    comentario: str | None = None
 
 
 class ReservaOut(BaseModel):
@@ -112,4 +124,5 @@ class ReservaOut(BaseModel):
     departamento: DepartamentoOut
     usuario: UsuarioOut
     cancelada: bool
+    comentario: str | None = None
     creado_en: datetime

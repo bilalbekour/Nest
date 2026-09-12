@@ -6,9 +6,11 @@ from sqlalchemy.orm import Session, joinedload
 from app.auth import require_staff
 from app.db import get_db
 from app.models import Departamento, Puesto, Reserva, Servicio
-from app.schemas import ReservaCreate, ReservaOut
+from app.schemas import ReservaCreate, ReservaLote, ReservaOut
 
 router = APIRouter(prefix="/api", tags=["reservas"])
+
+TIPOS = ("agente", "staff", "visita")
 
 
 def _load(db: Session, reserva_id: int) -> Reserva:
@@ -44,15 +46,11 @@ def list_reservas(fecha: date, db: Session = Depends(get_db), _=Depends(require_
 def create_reserva(data: ReservaCreate, db: Session = Depends(get_db), usuario=Depends(require_staff)):
     if data.hora_fin <= data.hora_inicio:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "hora_fin debe ser mayor que hora_inicio")
+    if data.tipo not in TIPOS:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Tipo no válido")
     if not db.get(Puesto, data.puesto_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Puesto no existe")
-    if not db.get(Servicio, data.servicio_id):
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Servicio no existe")
-    dep = db.get(Departamento, data.departamento_id)
-    if not dep:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Departamento no existe")
-    if dep.servicio_id is not None and dep.servicio_id != data.servicio_id:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "El departamento no pertenece a ese servicio")
+    _validar_combinacion(db, data.servicio_id, data.departamento_id)
     # ponytail: check-then-insert sin lock; para carga alta usar
     # SELECT ... FOR UPDATE o índice único parcial (puesto_id, fecha) WHERE NOT cancelada
     if _reservas_activas(db, data.puesto_id, data.fecha, data.hora_inicio, data.hora_fin):
@@ -60,6 +58,51 @@ def create_reserva(data: ReservaCreate, db: Session = Depends(get_db), usuario=D
     reserva = Reserva(**data.model_dump(), usuario_id=usuario.id)
     db.add(reserva); db.commit(); db.refresh(reserva)
     return _load(db, reserva.id)
+
+
+def _validar_combinacion(db: Session, servicio_id: int, departamento_id: int) -> None:
+    if not db.get(Servicio, servicio_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Servicio no existe")
+    dep = db.get(Departamento, departamento_id)
+    if not dep:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Departamento no existe")
+    if dep.servicio_id is not None and dep.servicio_id != servicio_id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "El departamento no pertenece a ese servicio")
+
+
+@router.post("/reservas/lote", response_model=list[ReservaOut], status_code=status.HTTP_201_CREATED)
+def create_reservas_lote(data: ReservaLote, db: Session = Depends(get_db), usuario=Depends(require_staff)):
+    if data.hora_fin <= data.hora_inicio:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "hora_fin debe ser mayor que hora_inicio")
+    if data.tipo not in TIPOS:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Tipo no válido")
+    ids = list(dict.fromkeys(data.puesto_ids))
+    if not ids:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Sin puestos")
+    if not (data.comentario or "").strip():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Indica el motivo de la reserva")
+    _validar_combinacion(db, data.servicio_id, data.departamento_id)
+    puestos = db.query(Puesto).filter(Puesto.id.in_(ids)).all()
+    if len(puestos) != len(ids):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Algún puesto no existe")
+    inactivos = [p.codigo for p in puestos if not p.activo]
+    if inactivos:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Puestos deshabilitados: {', '.join(inactivos)}")
+    ocupados = [p.codigo for p in puestos
+                if _reservas_activas(db, p.id, data.fecha, data.hora_inicio, data.hora_fin)]
+    if ocupados:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"Ocupados: {', '.join(ocupados)}")
+    creadas = []
+    for p in puestos:
+        r = Reserva(puesto_id=p.id, fecha=data.fecha, hora_inicio=data.hora_inicio,
+                    hora_fin=data.hora_fin, tipo=data.tipo, servicio_id=data.servicio_id,
+                    departamento_id=data.departamento_id, comentario=data.comentario.strip(),
+                    usuario_id=usuario.id)
+        db.add(r)
+        db.flush()
+        creadas.append(r)
+    db.commit()
+    return [_load(db, r.id) for r in creadas]
 
 
 @router.post("/reservas/{reserva_id}/cancelar", response_model=ReservaOut)

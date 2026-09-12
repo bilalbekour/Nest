@@ -37,6 +37,7 @@
     .desk-mixed { background: #FDF3E3; border: 1px solid #E3B96B; }
     .desk-mixed:hover { filter: saturate(1.15); }
     .desk-disabled { background: #F1F5F9; border: 1px solid #CBD5E1; opacity: .55; }
+    .desk-selected { outline: 2px dashed #405060; outline-offset: 2px; }
     .desk-match { box-shadow: 0 0 0 3px rgba(192,104,72,.95); }
     .desk-dim { opacity: .35; }
     .badge { border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
@@ -173,6 +174,14 @@
         <select id="filtro-departamento" class="inp" onchange="renderPlan()"></select>
       </div>
       <button onclick="renderPlan()" class="btn btn-navy">Mostrar plano</button>
+      <button id="btn-masiva" onclick="toggleMasiva()" class="btn btn-ghost">Reserva masiva</button>
+    </div>
+
+    <div id="masiva-bar" class="hidden card p-4 mb-5 flex items-center gap-3 flex-wrap">
+      <span class="text-sm font-bold text-[#1F2937]"><span id="masiva-count">0</span> puestos seleccionados</span>
+      <span class="text-xs text-[#64748B]">Pincha mesas para añadirlas · "Toda" selecciona la zona</span>
+      <button onclick="openModalLote()" class="btn btn-navy">Reservar</button>
+      <button onclick="limpiarMasiva()" class="btn btn-ghost">Limpiar</button>
     </div>
 
     <!-- Resumen del día -->
@@ -221,6 +230,7 @@
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#E3B96B] bg-[#FDF3E3] rounded"></span>Mixto</span>
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#CBD5E1] bg-[#F1F5F9] rounded opacity-60"></span>Deshabilitado</span>
       <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block bg-white rounded" style="box-shadow:0 0 0 2px rgba(192,104,72,.95)"></span>Coincide con el filtro</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block bg-white rounded" style="outline:2px dashed #405060;outline-offset:1px"></span>Seleccionada</span>
     </div>
   </section>
 
@@ -256,6 +266,7 @@
               <th class="th">Departamento</th>
               <th class="th">Reservado por</th>
               <th class="th">Estado</th>
+              <th class="th">Comentario</th>
             </tr>
           </thead>
           <tbody id="hist-body"></tbody>
@@ -458,6 +469,13 @@
       </div>
       <div class="p-6 space-y-4">
         <div id="modal-info" class="space-y-2"></div>
+        <div id="modal-masiva" class="hidden space-y-3">
+          <p id="modal-masiva-info" class="text-sm text-[#1F2937]"></p>
+          <div>
+            <label class="block text-xs font-semibold sub mb-1.5">Motivo (obligatorio)</label>
+            <textarea id="modal-comentario" rows="3" class="inp w-full" placeholder="¿Por qué esta reserva masiva o visita?"></textarea>
+          </div>
+        </div>
         <div id="modal-form" class="space-y-3">
         <div>
           <label class="block text-xs font-semibold sub mb-1.5">Puesto</label>
@@ -484,6 +502,7 @@
       <div class="flex justify-end gap-2 px-6 pb-6">
         <button onclick="closeModal()" class="btn btn-ghost">Cerrar</button>
         <button id="modal-save" onclick="saveReserva()" class="btn btn-navy">Guardar</button>
+        <button id="modal-save-lote" onclick="saveLote()" class="btn btn-navy hidden">Reservar</button>
       </div>
     </div>
   </div>

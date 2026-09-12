@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
-const state = { token: null, usuario: null, puestos: [], reservas: [], servicios: [], departamentos: [] };
+const state = { token: null, usuario: null, puestos: [], reservas: [], servicios: [], departamentos: [],
+  masiva: false, masivaSel: new Set(), modalModo: null };
 let modalDesk = null;
 
 function api(path, opts = {}) {
@@ -157,7 +158,7 @@ function renderHist(reservas) {
   if (reservas.length === 0) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 9;
+    td.colSpan = 10;
     td.textContent = "No hay reservas";
     td.className = "td text-center py-6 text-[#94A3B8]";
     tr.appendChild(td);
@@ -190,6 +191,11 @@ function renderHist(reservas) {
     badge.textContent = r.cancelada ? "Cancelada" : "Activa";
     tdEstado.appendChild(badge);
     tr.appendChild(tdEstado);
+    const tdC = document.createElement("td");
+    tdC.className = "td max-w-[220px] truncate";
+    tdC.textContent = r.comentario || "—";
+    tdC.title = r.comentario || "";
+    tr.appendChild(tdC);
     body.appendChild(tr);
   }
 }
@@ -946,7 +952,7 @@ function deskStatus(desk, desde, hasta) {
     overlaps(r, desde, hasta) && r.usuario.id === state.usuario.id && activeIds.includes(r.puesto.id));
   const occupied = activeIds.filter(id => resByPos[id]);
   const free = activeIds.filter(id => !resByPos[id]);
-  if (occupied.length === 0) return { state: "free", reservations: [] };
+  if (occupied.length === 0) return { state: "free", reservations: [], freeIds: activeIds };
   if (free.length === 0) return mine.length
     ? { state: "mine", reservations: mine, freeIds: free }
     : { state: "occupied", reservations: Object.values(resByPos) };
@@ -1097,6 +1103,14 @@ function renderPlan() {
         const zonaLabel = zona === "ZI" ? "Izquierda" : "Derecha";
         const count = zDesks.reduce((s, d) => s + d.positions.length, 0);
         zonaEl.innerHTML = `<h4 class="text-sm font-semibold mb-2 text-[#405060]">Zona ${zonaLabel} <span class="font-normal text-[#64748B]">(${count} puestos)</span></h4>`;
+        if (state.masiva) {
+          const btnT = document.createElement("button");
+          btnT.className = "adm-mini mb-2";
+          btnT.textContent = "Toda";
+          btnT.title = "Seleccionar toda la zona libre";
+          btnT.onclick = () => seleccionarZona(zDesks, desde, hasta);
+          zonaEl.appendChild(btnT);
+        }
 
         const filas = [...new Set(zDesks.map(d => d.fila))].sort((a, b) => a - b);
         filas.forEach(fila => {
@@ -1155,11 +1169,13 @@ function deskEl(desk, desde, hasta) {
   if (status.state === "disabled") {
     el.classList.add("desk-disabled", "cursor-default");
     el.title = "Deshabilitado";
-  } else if (status.state === "mine") {
+  } else   if (status.state === "mine") {
     const r = status.reservations[0];
     el.classList.add("desk-mine");
     el.title = `Tu reserva · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para ver y cancelar`;
-    el.onclick = () => openModal(desk, status.freeIds, desde, hasta);
+    el.onclick = () => (state.masiva && status.freeIds.length
+      ? toggleSeleccion(desk, desde, hasta)
+      : openModal(desk, status.freeIds, desde, hasta));
   } else if (status.state === "occupied") {
     const r = status.reservations[0];
     el.classList.add("desk-occupied");
@@ -1168,10 +1184,14 @@ function deskEl(desk, desde, hasta) {
   } else if (status.state === "mixed") {
     el.classList.add("desk-mixed");
     el.title = "Algunas posiciones libres · Clic para ver y reservar";
-    el.onclick = () => openModal(desk, status.freeIds, desde, hasta);
-  } else {
+    el.onclick = () => (state.masiva ? toggleSeleccion(desk, desde, hasta) : openModal(desk, status.freeIds, desde, hasta));
+  } else if (status.state === "free") {
     el.classList.add("desk-free");
-    el.onclick = () => openModal(desk, undefined, desde, hasta);
+    el.onclick = () => (state.masiva ? toggleSeleccion(desk, desde, hasta) : openModal(desk, undefined, desde, hasta));
+  }
+  if (state.masiva) {
+    const ids = status.freeIds || [];
+    if (ids.length && ids.some(id => state.masivaSel.has(id))) el.classList.add("desk-selected");
   }
   if (status.state === "occupied" || status.state === "mine") {
     const ss = serviciosDe(status.reservations);
@@ -1202,6 +1222,89 @@ function deskEl(desk, desde, hasta) {
   return el;
 }
 
+/* ── Reserva masiva ── */
+function toggleMasiva() {
+  state.masiva = !state.masiva;
+  state.masivaSel = new Set();
+  $("masiva-bar").classList.toggle("hidden", !state.masiva);
+  const b = $("btn-masiva");
+  b.classList.toggle("btn-navy", state.masiva);
+  b.classList.toggle("btn-ghost", !state.masiva);
+  actualizaBarraMasiva();
+  renderPlan();
+}
+
+function actualizaBarraMasiva() {
+  $("masiva-count").textContent = (state.masivaSel || new Set()).size;
+}
+
+function limpiarMasiva() {
+  state.masivaSel = new Set();
+  actualizaBarraMasiva();
+  renderPlan();
+}
+
+function toggleSeleccion(desk, desde, hasta) {
+  const st = deskStatus(desk, desde, hasta);
+  const ids = st.freeIds || [];
+  if (!ids.length) return;
+  if (ids.every(id => state.masivaSel.has(id))) ids.forEach(id => state.masivaSel.delete(id));
+  else ids.forEach(id => state.masivaSel.add(id));
+  actualizaBarraMasiva();
+  renderPlan();
+}
+
+function seleccionarZona(zDesks, desde, hasta) {
+  zDesks.forEach(d => {
+    const st = deskStatus(d, desde, hasta);
+    (st.freeIds || []).forEach(id => state.masivaSel.add(id));
+  });
+  actualizaBarraMasiva();
+  renderPlan();
+}
+
+function openModalLote() {
+  const ids = [...(state.masivaSel || [])];
+  if (!ids.length) return;
+  state.modalModo = "lote";
+  $("modal-title").textContent = `Reserva masiva · ${ids.length} puestos`;
+  $("modal-info").innerHTML = "";
+  $("modal-masiva-info").textContent = `${ids.length} puestos · ${state.fecha} · ${state.desde}–${state.hasta}`;
+  $("modal-form").classList.add("hidden");
+  $("modal-masiva").classList.remove("hidden");
+  $("modal-save").classList.add("hidden");
+  $("modal-save-lote").classList.remove("hidden");
+  $("modal").classList.remove("hidden");
+}
+
+async function saveLote() {
+  const ids = [...(state.masivaSel || [])];
+  const comentario = $("modal-comentario").value.trim();
+  if (!comentario) {
+    alert("Indica el motivo de la reserva");
+    return;
+  }
+  try {
+    await api("/api/reservas/lote", { method: "POST", json: {
+      puesto_ids: ids,
+      fecha: state.fecha,
+      hora_inicio: state.desde + ":00",
+      hora_fin: state.hasta + ":00",
+      tipo: $("modal-tipo").value,
+      servicio_id: +$("modal-servicio").value,
+      departamento_id: +$("modal-departamento").value,
+      comentario,
+    }});
+    state.masivaSel = new Set();
+    $("modal-comentario").value = "";
+    closeModal();
+    actualizaBarraMasiva();
+    renderPlan();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 /* ── Modal ── */
 function reservaEn(puestoId, desde, hasta) {
   return state.reservas.find(r => r.puesto.id === puestoId && overlaps(r, desde, hasta));
@@ -1227,6 +1330,10 @@ function fillDeptosForServicio() {
 
 function openModal(desk, freeIds, desde, hasta) {
   modalDesk = desk;
+  state.modalModo = "single";
+  $("modal-masiva").classList.add("hidden");
+  $("modal-save-lote").classList.add("hidden");
+  $("modal-form").classList.remove("hidden");
   desde = desde || state.desde;
   hasta = hasta || state.hasta;
   const hasFree = !freeIds || freeIds.length > 0;
@@ -1281,7 +1388,7 @@ function openModal(desk, freeIds, desde, hasta) {
   $("modal").classList.remove("hidden");
 }
 
-function closeModal() { $("modal").classList.add("hidden"); modalDesk = null; }
+function closeModal() { $("modal").classList.add("hidden"); modalDesk = null; state.modalModo = null; }
 
 async function saveReserva() {
   if (!modalDesk) return;
