@@ -282,7 +282,7 @@
       <div class="flex items-end gap-3 flex-wrap">
         <div><label class="block text-xs font-semibold sub mb-1.5">Desde</label><input id="rep-fecha-desde" type="date" class="inp"></div>
         <div><label class="block text-xs font-semibold sub mb-1.5">Hasta</label><input id="rep-fecha-hasta" type="date" class="inp"></div>
-        <div><label class="block text-xs font-semibold sub mb-1.5">Servicio</label><select id="rep-servicio" class="inp"></select></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5">Servicio</label><select id="rep-servicio" class="inp" onchange="actualizaRepDepto()"></select></div>
         <div><label class="block text-xs font-semibold sub mb-1.5">Departamento</label><select id="rep-departamento" class="inp"></select></div>
         <div><label class="block text-xs font-semibold sub mb-1.5">Tipo</label>
           <select id="rep-tipo" class="inp">
@@ -527,6 +527,6 @@
     </div>
   </div>
 
-  <script src="/app.js?v=5"></script>
+  <script src="/app.js?v=6"></script>
 </body>
 </html>

@@ -101,7 +101,7 @@ function enter() {
       fillHistSelect($("filtro-departamento"), d);
       fillHistSelect($("rep-servicio"), s);
       fillHistSelect($("rep-departamento"), d);
-      actualizaFiltroDepto();
+      actualizaRepDepto();
       renderPlan();
     })
     .catch(() => logout());
@@ -852,7 +852,7 @@ function refrescarCatalogos() {
       fillHistSelect($("filtro-departamento"), d);
       fillHistSelect($("rep-servicio"), s);
       fillHistSelect($("rep-departamento"), d);
-      actualizaFiltroDepto();
+      actualizaRepDepto();
     });
 }
 
@@ -885,6 +885,32 @@ function actualizaFiltroDepto() {
 function cambioFiltroServicio() {
   actualizaFiltroDepto();
   renderPlan();
+}
+
+function actualizaRepDepto() {
+  const sid = +$("rep-servicio").value || null;
+  const sel = $("rep-departamento");
+  const cur = sel.value;
+  sel.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "Todos";
+  sel.appendChild(all);
+  if (!sid) {
+    sel.value = "";
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  state.departamentos
+    .filter(dep => !dep.servicio_id || dep.servicio_id === sid)
+    .forEach(dep => {
+      const o = document.createElement("option");
+      o.value = dep.id;
+      o.textContent = dep.nombre;
+      sel.appendChild(o);
+    });
+  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
 }
 
 function loadAdmin() {
