@@ -67,9 +67,8 @@ function enter() {
   $("nav-user").textContent = `${state.usuario.nombre} (${state.usuario.rol})`;
   $("fecha").value = todayStr();
   show("reservar");
-  Promise.all([api("/api/puestos"), api("/api/servicios"), api("/api/departamentos")])
-    .then(([p, s, d]) => {
-      state.puestos = p;
+  Promise.all([api("/api/servicios"), api("/api/departamentos")])
+    .then(([s, d]) => {
       state.servicios = s;
       state.departamentos = d;
       fillSelect($("modal-servicio"), s);
@@ -104,6 +103,7 @@ function show(view) {
   document.querySelectorAll("[data-nav]").forEach(b => {
     b.classList.toggle("nav-active", b.dataset.nav === view);
   });
+  if (view === "reservar") renderPlan();
   if (view === "historico") loadHistorico();
   if (view === "reporting") generarInforme();
   if (view === "admin") loadAdmin();
@@ -614,6 +614,27 @@ async function togglePuesto(id, activo) {
   }
 }
 
+async function crearPuestosLote() {
+  const planta = +$("adm-np-planta").value;
+  const zona = $("adm-np-zona").value.trim();
+  const fila = +$("adm-np-fila").value;
+  const l1 = +$("adm-np-lado1").value || 0;
+  const l2 = +$("adm-np-lado2").value || 0;
+  if (!zona || !(fila >= 1) || l1 + l2 === 0) {
+    alert("Revisa los datos: zona, fila y al menos un despacho");
+    return;
+  }
+  try {
+    const creados = await api("/api/puestos/lote", {
+      method: "POST", json: { planta, zona, fila, lados: { 1: l1, 2: l2 } },
+    });
+    alert(`Creados ${creados.length} puestos`);
+    loadPuestosAdmin();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 function refrescarCatalogos() {
   return Promise.all([api("/api/servicios"), api("/api/departamentos")])
     .then(([s, d]) => {
@@ -826,7 +847,10 @@ function renderPlan() {
   state.fServicio = +$("filtro-servicio").value || null;
   state.fDepto = +$("filtro-departamento").value || null;
 
-  api(`/api/reservas?fecha=${fecha}`).then(reservas => {
+  api("/api/puestos").then(puestos => {
+    state.puestos = puestos;
+    return api(`/api/reservas?fecha=${fecha}`);
+  }).then(reservas => {
     state.reservas = reservas;
     renderResumen();
     const allDesks = groupDesks(state.puestos);
@@ -898,7 +922,7 @@ function renderPlan() {
       card.appendChild(zonasRow);
       container.appendChild(card);
     });
-  });
+  }).catch(err => { if (state.token) alert(err.message); });
 }
 
 function deskEl(desk, desde, hasta) {

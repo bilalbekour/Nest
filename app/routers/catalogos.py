@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.auth import hash_password, require_admin, require_staff
 from app.db import get_db
 from app.models import Departamento, Puesto, Reserva, Servicio, Usuario
 from app.schemas import (DepartamentoCreate, DepartamentoOut, PuestoActivo,
-                         PuestoOut, ServicioCreate, ServicioOut, UsuarioCreate,
-                         UsuarioOut, UsuarioUpdate)
+                         PuestoCreate, PuestoLote, PuestoOut, ServicioCreate,
+                         ServicioOut, UsuarioCreate, UsuarioOut, UsuarioUpdate)
 
 router = APIRouter(prefix="/api", tags=["catalogos"])
 
@@ -111,6 +112,56 @@ def set_puesto_activo(puesto_id: int, data: PuestoActivo, db: Session = Depends(
     obj.activo = data.activo
     db.commit(); db.refresh(obj)
     return obj
+
+
+def _siguiente_posicion(db: Session, planta: int, zona: str, fila: int, lado: int) -> int:
+    mx = db.query(func.max(Puesto.posicion)).filter_by(
+        planta=planta, zona=zona, fila=fila, lado=lado).scalar()
+    return (mx or 0) + 1
+
+
+def _validar_ubicacion(planta: int, zona: str, fila: int, lado: int) -> str:
+    zona = (zona or "").strip().upper()
+    if not zona or planta < 0 or fila < 1 or lado not in (1, 2):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Datos de puesto no válidos")
+    return zona
+
+
+@router.post("/puestos", response_model=PuestoOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
+def create_puesto(data: PuestoCreate, db: Session = Depends(get_db)):
+    zona = _validar_ubicacion(data.planta, data.zona, data.fila, data.lado)
+    pos = data.posicion or _siguiente_posicion(db, data.planta, zona, data.fila, data.lado)
+    codigo = f"P{data.planta}-{zona}-F{data.fila}-L{data.lado}-{pos}"
+    if db.query(Puesto).filter_by(codigo=codigo).first():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Puesto ya existe")
+    obj = Puesto(codigo=codigo, planta=data.planta, zona=zona,
+                 fila=data.fila, lado=data.lado, posicion=pos)
+    db.add(obj); db.commit(); db.refresh(obj)
+    return obj
+
+
+@router.post("/puestos/lote", response_model=list[PuestoOut], status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
+def create_puestos_lote(data: PuestoLote, db: Session = Depends(get_db)):
+    if set(data.lados) - {1, 2} or any(n < 0 for n in data.lados.values()) or sum(data.lados.values()) == 0:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Datos de lote no válidos")
+    zona = _validar_ubicacion(data.planta, data.zona, data.fila, 1)
+    creados = []
+    for lado in (1, 2):
+        for _ in range(data.lados.get(lado, 0)):
+            for _ in range(2):  # cada despacho = 2 posiciones
+                pos = _siguiente_posicion(db, data.planta, zona, data.fila, lado)
+                codigo = f"P{data.planta}-{zona}-F{data.fila}-L{lado}-{pos}"
+                if db.query(Puesto).filter_by(codigo=codigo).first():
+                    raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Puesto ya existe: {codigo}")
+                obj = Puesto(codigo=codigo, planta=data.planta, zona=zona,
+                             fila=data.fila, lado=lado, posicion=pos)
+                db.add(obj)
+                db.flush()
+                creados.append(obj)
+    db.commit()
+    for obj in creados:
+        db.refresh(obj)
+    return creados
 
 
 @router.get("/usuarios", response_model=list[UsuarioOut], dependencies=[Depends(require_admin)])

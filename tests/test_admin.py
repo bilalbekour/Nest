@@ -150,3 +150,39 @@ def test_patch_puesto_y_list_todos(client):
     assert client.patch(f"/api/puestos/{pid}", headers=h, json={"activo": True}).status_code == 200
     assert len(client.get("/api/puestos", headers=hs).json()) == 210
     assert client.patch("/api/puestos/9999", headers=h, json={"activo": False}).status_code == 404
+
+
+def test_create_puesto_lote(client):
+    h = admin_h(client)
+    body = {"planta": 3, "zona": "ZI", "fila": 1, "lados": {"1": 2, "2": 1}}
+    r = client.post("/api/puestos/lote", headers=h, json=body)
+    assert r.status_code == 201
+    creados = r.json()
+    assert len(creados) == 6
+    assert creados[0]["codigo"] == "P3-ZI-F1-L1-1"
+    assert creados[0]["activo"] is True
+    hs = auth_headers(client)
+    assert len(client.get("/api/puestos", headers=hs).json()) == 216
+    r2 = client.post("/api/puestos/lote", headers=h, json={"planta": 3, "zona": "zi", "fila": 1, "lados": {"1": 1, "2": 0}})
+    assert r2.status_code == 201
+    assert r2.json()[0]["codigo"] == "P3-ZI-F1-L1-5"
+
+
+def test_create_puesto_lote_invalido(client):
+    h = admin_h(client)
+    hs = auth_headers(client)
+    assert client.post("/api/puestos/lote", headers=h, json={"planta": 3, "zona": "", "fila": 1, "lados": {"1": 1}}).status_code == 400
+    assert client.post("/api/puestos/lote", headers=h, json={"planta": 3, "zona": "ZI", "fila": 0, "lados": {"1": 1}}).status_code == 400
+    assert client.post("/api/puestos/lote", headers=h, json={"planta": 3, "zona": "ZI", "fila": 1, "lados": {"3": 1}}).status_code == 400
+    assert client.post("/api/puestos/lote", headers=h, json={"planta": 3, "zona": "ZI", "fila": 1, "lados": {"1": 0}}).status_code == 400
+    assert client.post("/api/puestos/lote", headers=hs, json={"planta": 3, "zona": "ZI", "fila": 1, "lados": {"1": 1}}).status_code == 403
+
+
+def test_create_puesto_individual(client):
+    h = admin_h(client)
+    r = client.post("/api/puestos", headers=h, json={"planta": 3, "zona": "ZD", "fila": 2, "lado": 1})
+    assert r.status_code == 201
+    assert r.json()["codigo"] == "P3-ZD-F2-L1-1"
+    dup = client.post("/api/puestos", headers=h, json={"planta": 3, "zona": "ZD", "fila": 2, "lado": 1, "posicion": 1})
+    assert dup.status_code == 400
+    assert client.post("/api/puestos", headers=h, json={"planta": 3, "zona": "ZD", "fila": 2, "lado": 5}).status_code == 400

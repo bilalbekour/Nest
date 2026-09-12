@@ -67,6 +67,21 @@ class PuestoActivo(BaseModel):
     activo: bool
 
 
+class PuestoCreate(BaseModel):
+    planta: int
+    zona: str
+    fila: int
+    lado: int
+    posicion: int | None = None
+
+
+class PuestoLote(BaseModel):
+    planta: int
+    zona: str
+    fila: int
+    lados: dict[int, int]
+
+
 class ReservaCreate(BaseModel):
     puesto_id: int
     fecha: date
