@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Reserva de Puestos", lifespan=lifespan, docs_url=None, redoc_url=None)
+app = FastAPI(title="Reserva de Puestos", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 app.include_router(auth_router.router)
 app.include_router(ajustes_router.router)
 app.include_router(catalogos_router.router)
