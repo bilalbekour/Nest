@@ -1,5 +1,6 @@
 const I18N = {
   en: {
+    "Nido": "Nest",
     "Nido · Reserva de Puestos": "Nido · Desk Booking",
     "Reserva de puestos de oficina por fecha y tramo horario. Gestión sencilla, visual y segura.": "Office desk booking by date and time slot. Simple, visual and secure management.",
     "Acceso interno · Equipo Nido": "Internal access · Nido team",
@@ -188,6 +189,7 @@ const I18N = {
     "Reserva masiva · {0} puestos": "Bulk booking · {0} desks"
   },
   fr: {
+    "Nido": "Nid",
     "Nido · Reserva de Puestos": "Nido · Réservation de Bureaux",
     "Reserva de puestos de oficina por fecha y tramo horario. Gestión sencilla, visual y segura.": "Réservation de bureaux par date et créneau horaire. Une gestion simple, visuelle et sécurisée.",
     "Acceso interno · Equipo Nido": "Accès interne · Équipe Nido",
