@@ -42,11 +42,32 @@ sudo -u nido .venv/bin/pip install --upgrade pip
 sudo -u nido .venv/bin/pip install -r requirements.txt
 ```
 
-## 5. Crear la base de datos
+## 5. Base de datos: SQLite (por defecto) o PostgreSQL
+
+Por defecto se usa SQLite (`/opt/nido/nido.db`), suficiente para un solo servidor.
 
 ```bash
 sudo -u nido .venv/bin/python -m app.seed   # crea nido.db y puestos por defecto
 ```
+
+Para usar **PostgreSQL** (recomendado con varios servidores o más carga):
+
+```bash
+sudo apt install postgresql postgresql-client
+sudo -u postgres createuser nido --pwprompt   # define una contraseña
+sudo -u postgres createdb -O nido nido
+```
+
+Y define la conexión en el entorno (`.env` o `Environment=` del servicio):
+
+```
+DATABASE_URL=postgresql://nido:TU_PASSWORD@127.0.0.1:5432/nido
+```
+
+La app detecta el backend solo (conexión, PRAGMA de FKs y módulo de backups incluido).
+Los backups con Postgres usan `pg_dump` (formato custom); se restauran con
+`pg_restore --clean -d nido nido-XXXX.dump`. El seed es el mismo
+(`python -m app.seed`).
 
 > `.env` se genera solo: en el primer arranque `config.py` crea una `SECRET_KEY`
 > aleatoria y la guarda ahí (no hace falta crearla a mano). Nunca commitees `.env`.
