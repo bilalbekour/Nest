@@ -1264,14 +1264,14 @@ function renderResumen() {
   const af = $("res-aforo");
   af.innerHTML = "";
   Object.keys(capPl).sort().forEach(pl => {
-    const o = ocuPl[pl] || 0, t = capPl[pl];
-    const pc = t ? Math.round(o / t * 100) : 0;
+    const o = ocuPl[pl] || 0, cap_ = capPl[pl];
+    const pc = cap_ ? Math.round(o / cap_ * 100) : 0;
     const chip = document.createElement("span");
     chip.className = "inline-flex items-center gap-1.5 font-semibold";
     const dot = document.createElement("span");
     dot.style.cssText = `width:9px;height:9px;border-radius:9999px;background:${pc < 70 ? "#27AE60" : pc < 90 ? "#D9A35E" : "#B4443C"}`;
     const tx = document.createElement("span");
-    tx.textContent = `P${pl} · ${o}/${t}`;
+    tx.textContent = `P${pl} · ${o}/${cap_}`;
     tx.title = `${pc}% ${t("ocupacion")}`;
     chip.append(dot, tx);
     af.appendChild(chip);
@@ -1758,10 +1758,10 @@ async function cancelReserva(id) {
 applyI18n();
 (function restaurarSesion() {
   try {
-    const t = localStorage.getItem("nido_token");
+    const token = localStorage.getItem("nido_token");
     const u = JSON.parse(localStorage.getItem("nido_usuario") || "null");
-    if (t && u && u.id) {
-      state.token = t;
+    if (token && u && u.id) {
+      state.token = token;
       state.usuario = u;
       enter();
     }
