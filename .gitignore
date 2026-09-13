@@ -5,3 +5,4 @@ __pycache__/
 .worktrees/
 .env
 *.db
+docs/superpowers/
