@@ -131,16 +131,6 @@ def mis_reservas(db: Session = Depends(get_db), usuario=Depends(require_staff)):
             .order_by(Reserva.fecha, Reserva.hora_inicio).all())
 
 
-@router.get("/reservas/usuario/{usuario_id}", response_model=list[ReservaOut])
-def reservas_de_usuario(usuario_id: int, desde: date | None = None,
-                        db: Session = Depends(get_db), _=Depends(require_staff)):
-    desde = desde or date.today()
-    return (_con_relaciones(db.query(Reserva))
-            .filter(Reserva.usuario_id == usuario_id, Reserva.cancelada.is_(False),
-                    Reserva.fecha >= desde)
-            .order_by(Reserva.fecha, Reserva.hora_inicio).all())
-
-
 @router.post("/reservas/recurrente", response_model=list[ReservaOut], status_code=status.HTTP_201_CREATED)
 def create_reserva_recurrente(data: ReservaRecurrente, db: Session = Depends(get_db),
                               usuario=Depends(require_staff)):

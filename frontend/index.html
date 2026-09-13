@@ -72,29 +72,34 @@
       <div class="absolute inset-0 bg-gradient-to-br from-[#2C3A46]/60 to-[#1E293B]"></div>
       <div class="relative z-10 w-full max-w-md">
         <img src="/logo.png" alt="Nido" class="h-24 w-auto rounded-lg mb-10">
-        <p class="text-lg text-white/70 leading-relaxed mb-10">Reserva de puestos de oficina por fecha y tramo horario. Gestión sencilla, visual y segura.</p>
-        <div class="border-t border-white/10 pt-6 text-sm text-white/50">Acceso interno · Equipo Nido</div>
+        <p class="text-lg text-white/70 leading-relaxed mb-10" data-i18n="Reserva de puestos de oficina por fecha y tramo horario. Gestión sencilla, visual y segura.">Reserva de puestos de oficina por fecha y tramo horario. Gestión sencilla, visual y segura.</p>
+        <div class="border-t border-white/10 pt-6 text-sm text-white/50" data-i18n="Acceso interno · Equipo Nido">Acceso interno · Equipo Nido</div>
       </div>
     </div>
-    <div class="flex-1 flex items-center justify-center p-8 lg:p-16 bg-white">
+    <div class="flex-1 flex items-center justify-center p-8 lg:p-16 bg-white relative">
+      <select class="langsel inp absolute top-4 left-4 w-32" onchange="cambioIdioma(this)">
+        <option value="es">Español</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+      </select>
       <div class="w-full max-w-md">
         <form id="login-form" class="space-y-6">
           <div>
-            <h1 class="text-2xl font-bold text-[#111827]">Iniciar sesión</h1>
-            <p class="mt-1.5 text-[#6B7280]">Accede para reservar tu puesto</p>
+            <h1 class="text-2xl font-bold text-[#111827]" data-i18n="Iniciar sesión">Iniciar sesión</h1>
+            <p class="mt-1.5 text-[#6B7280]" data-i18n="Accede para reservar tu puesto">Accede para reservar tu puesto</p>
           </div>
           <div>
-            <label for="login-user" class="block text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-1.5">Usuario</label>
-            <input id="login-user" type="text" placeholder="ej. maria.perez" required class="w-full px-4 py-3 border border-[#E2E4E9] rounded-lg text-[#26302E] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#405060]/20 focus:border-[#405060] transition-colors">
+            <label for="login-user" class="block text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-1.5" data-i18n="Usuario">Usuario</label>
+            <input id="login-user" type="text" placeholder="ej. maria.perez" required data-i18n-placeholder="ej. maria.perez" class="w-full px-4 py-3 border border-[#E2E4E9] rounded-lg text-[#26302E] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#405060]/20 focus:border-[#405060] transition-colors">
           </div>
           <div>
-            <label for="login-pass" class="block text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-1.5">Contraseña</label>
+            <label for="login-pass" class="block text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-1.5" data-i18n="Contraseña">Contraseña</label>
             <input id="login-pass" type="password" required class="w-full px-4 py-3 border border-[#E2E4E9] rounded-lg text-[#26302E] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#405060]/20 focus:border-[#405060] transition-colors">
           </div>
           <p id="login-error" class="text-sm text-[#B2633F] hidden"></p>
-          <button type="submit" class="w-full py-3 bg-[#405060] text-white font-semibold rounded-lg hover:bg-[#4B5E60] focus:outline-none focus:ring-2 focus:ring-[#405060]/20 focus:ring-offset-2 transition-colors">Entrar</button>
+          <button type="submit" class="w-full py-3 bg-[#405060] text-white font-semibold rounded-lg hover:bg-[#4B5E60] focus:outline-none focus:ring-2 focus:ring-[#405060]/20 focus:ring-offset-2 transition-colors" data-i18n="Entrar">Entrar</button>
         </form>
-        <p class="mt-6 text-center text-xs text-[#9CA3AF]">Uso interno</p>
+        <p class="mt-6 text-center text-xs text-[#9CA3AF]" data-i18n="Uso interno">Uso interno</p>
       </div>
     </div>
   </section>
@@ -105,38 +110,34 @@
       <div class="px-2 mb-6">
         <img src="/logo.png" alt="Nido" class="h-10 w-fit rounded-md">
       </div>
-      <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">Menú</p>
+      <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35" data-i18n="Menú">Menú</p>
       <div class="flex flex-col gap-1">
         <button data-nav="reservar" onclick="show('reservar')" class="navbtn w-full text-left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-          Reservar
+          <span data-i18n="Reservar">Reservar</span>
         </button>
         <button data-nav="mis" onclick="show('mis')" class="navbtn w-full text-left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-          Mis reservas
+          <span data-i18n="Mis reservas">Mis reservas</span>
         </button>
         <button data-nav="calendario" onclick="show('calendario')" class="navbtn w-full text-left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Calendario
-        </button>
-        <button data-nav="companeros" onclick="show('companeros')" class="navbtn w-full text-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Compañeros
+          <span data-i18n="Calendario">Calendario</span>
         </button>
         <button data-nav="historico" onclick="show('historico')" class="navbtn w-full text-left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Histórico
+          <span data-i18n="Histórico">Histórico</span>
         </button>
         <button data-nav="reporting" onclick="show('reporting')" class="navbtn w-full text-left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-          Reporting
+          <span data-i18n="Reporting">Reporting</span>
         </button>
       </div>
-      <p class="px-3 mb-2 mt-5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35 btn-admin" style="display:none">Administración</p>
+      <p class="px-3 mb-2 mt-5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35 btn-admin" style="display:none" data-i18n="Administración">Administración</p>
       <div class="flex flex-col gap-1">
         <button data-nav="admin" onclick="show('admin')" class="navbtn w-full text-left btn-admin" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-          Admin
+          <span data-i18n="Admin">Admin</span>
         </button>
       </div>
       <div class="mt-auto pt-4">
@@ -146,23 +147,27 @@
             <div id="nav-user" class="text-[13px] font-semibold text-white truncate"></div>
             <button onclick="logout()" class="mt-0.5 inline-flex items-center gap-1.5 text-xs text-red-300 hover:text-red-200">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              Salir
+              <span data-i18n="Salir">Salir</span>
             </button>
           </div>
         </div>
+        <select class="langsel inp w-full mt-2" onchange="cambioIdioma(this)">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+        </select>
       </div>
     </aside>
     <div class="flex-1 min-w-0">
       <div class="md:hidden bg-[#1E293B] px-3 py-2.5 flex items-center gap-1.5 overflow-x-auto">
         <img src="/logo.png" alt="Nido" class="h-7 rounded shrink-0 mr-1">
-        <button data-nav="reservar" onclick="show('reservar')" class="mnavbtn">Reservar</button>
-        <button data-nav="mis" onclick="show('mis')" class="mnavbtn">Mis</button>
-        <button data-nav="calendario" onclick="show('calendario')" class="mnavbtn">Calendario</button>
-        <button data-nav="companeros" onclick="show('companeros')" class="mnavbtn">Compañeros</button>
-        <button data-nav="historico" onclick="show('historico')" class="mnavbtn">Histórico</button>
-        <button data-nav="reporting" onclick="show('reporting')" class="mnavbtn">Reporting</button>
-        <button data-nav="admin" onclick="show('admin')" class="mnavbtn btn-admin" style="display:none">Admin</button>
-        <button onclick="logout()" class="mnavbtn ml-auto">Salir</button>
+        <button data-nav="reservar" onclick="show('reservar')" class="mnavbtn"><span data-i18n="Reservar">Reservar</span></button>
+        <button data-nav="mis" onclick="show('mis')" class="mnavbtn"><span data-i18n="Mis">Mis</span></button>
+        <button data-nav="calendario" onclick="show('calendario')" class="mnavbtn"><span data-i18n="Calendario">Calendario</span></button>
+        <button data-nav="historico" onclick="show('historico')" class="mnavbtn"><span data-i18n="Histórico">Histórico</span></button>
+        <button data-nav="reporting" onclick="show('reporting')" class="mnavbtn"><span data-i18n="Reporting">Reporting</span></button>
+        <button data-nav="admin" onclick="show('admin')" class="mnavbtn btn-admin" style="display:none"><span data-i18n="Admin">Admin</span></button>
+        <button onclick="logout()" class="mnavbtn ml-auto"><span data-i18n="Salir">Salir</span></button>
       </div>
       <main>
 
@@ -170,69 +175,69 @@
   <section id="reservar" class="hidden p-5 max-w-6xl mx-auto">
     <div class="card p-4 mb-5 flex items-end gap-4 flex-wrap">
       <div>
-        <label class="block text-xs font-semibold sub mb-1.5">Fecha</label>
+        <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Fecha">Fecha</label>
         <input id="fecha" type="date" class="inp">
       </div>
       <div>
-        <label class="block text-xs font-semibold sub mb-1.5">Desde</label>
+        <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Desde">Desde</label>
         <input id="desde" type="time" value="08:00" class="inp">
       </div>
       <div>
-        <label class="block text-xs font-semibold sub mb-1.5">Hasta</label>
+        <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Hasta">Hasta</label>
         <input id="hasta" type="time" value="19:00" class="inp">
       </div>
       <div>
-        <label class="block text-xs font-semibold sub mb-1.5">Servicio</label>
+        <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Servicio">Servicio</label>
         <select id="filtro-servicio" class="inp" onchange="cambioFiltroServicio()"></select>
       </div>
       <div>
-        <label class="block text-xs font-semibold sub mb-1.5">Departamento</label>
+        <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Departamento">Departamento</label>
         <select id="filtro-departamento" class="inp" onchange="renderPlan()"></select>
       </div>
-      <button onclick="renderPlan()" class="btn btn-navy">Mostrar plano</button>
-      <button onclick="irAFavorito()" class="btn btn-ghost">Mi puesto</button>
-      <button id="btn-masiva" onclick="toggleMasiva()" class="btn btn-ghost">Reserva masiva</button>
+      <button onclick="renderPlan()" class="btn btn-navy" data-i18n="Mostrar plano">Mostrar plano</button>
+      <button onclick="irAFavorito()" class="btn btn-ghost" data-i18n="Mi puesto">Mi puesto</button>
+      <button id="btn-masiva" onclick="toggleMasiva()" class="btn btn-ghost" data-i18n="Reserva masiva">Reserva masiva</button>
     </div>
 
     <div id="masiva-bar" class="hidden card p-4 mb-5 flex items-center gap-3 flex-wrap">
-      <span class="text-sm font-bold text-[#1F2937]"><span id="masiva-count">0</span> puestos seleccionados</span>
-      <span class="text-xs text-[#64748B]">Pincha mesas para añadirlas · "Toda" selecciona la zona</span>
-      <button onclick="openModalLote()" class="btn btn-navy">Reservar</button>
-      <button onclick="limpiarMasiva()" class="btn btn-ghost">Limpiar</button>
+      <span class="text-sm font-bold text-[#1F2937]"><span id="masiva-count">0</span> <span data-i18n="puestos seleccionados">puestos seleccionados</span></span>
+      <span class="text-xs text-[#64748B]" data-i18n="Pincha mesas para añadirlas · &quot;Toda&quot; selecciona la zona">Pincha mesas para añadirlas · "Toda" selecciona la zona</span>
+      <button onclick="openModalLote()" class="btn btn-navy" data-i18n="Reservar">Reservar</button>
+      <button onclick="limpiarMasiva()" class="btn btn-ghost" data-i18n="Limpiar">Limpiar</button>
     </div>
 
     <!-- Resumen del día -->
     <div id="resumen" class="card p-5 mb-5">
       <div class="flex items-baseline justify-between mb-4">
-        <h3 class="font-extrabold text-base text-[#1F2937]">Resumen del día</h3>
+        <h3 class="font-extrabold text-base text-[#1F2937]" data-i18n="Resumen del día">Resumen del día</h3>
         <span id="resumen-sub" class="text-xs text-[#64748B]"></span>
       </div>
       <div class="grid grid-cols-3 gap-3 mb-4">
         <div class="rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] p-4 text-center">
           <div id="res-libres" class="text-3xl font-extrabold text-[#405060]">–</div>
-          <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Libres</div>
+          <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1" data-i18n="Libres">Libres</div>
         </div>
         <div class="rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] p-4 text-center">
           <div id="res-ocupados" class="text-3xl font-extrabold text-[#B4443C]">–</div>
-          <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Ocupados</div>
+          <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1" data-i18n="Ocupados">Ocupados</div>
         </div>
         <div class="rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] p-4 text-center">
           <div id="res-pct" class="text-3xl font-extrabold text-[#1F2937]">–</div>
-          <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Ocupación</div>
+          <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1" data-i18n="Ocupación">Ocupación</div>
         </div>
       </div>
       <div id="res-aforo" class="flex gap-4 flex-wrap mb-5 text-xs text-[#64748B]"></div>
       <div class="grid md:grid-cols-3 gap-6">
         <div>
-          <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-2">Por servicio</h4>
+          <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-2" data-i18n="Por servicio">Por servicio</h4>
           <div id="res-servicios" class="space-y-2.5"></div>
         </div>
         <div>
-          <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-2">Por departamento</h4>
+          <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-2" data-i18n="Por departamento">Por departamento</h4>
           <div id="res-deptos" class="space-y-2.5"></div>
         </div>
         <div>
-          <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-2">Por tipo</h4>
+          <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-2" data-i18n="Por tipo">Por tipo</h4>
           <div id="res-tipos" class="space-y-2.5"></div>
         </div>
       </div>
@@ -241,14 +246,14 @@
     <div id="plan" class="flex flex-col gap-5"></div>
 
     <div class="flex gap-5 mt-5 text-xs sub flex-wrap">
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#CBD5E1] bg-white rounded"></span>Libre</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#2962FF] bg-[#D9E6FD] rounded"></span>Ocupado (color del servicio)</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#287080] bg-[#D3E5E8] rounded"></span>Compartida (2 servicios)</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border-2 border-[#405060] bg-white rounded"></span>Tu reserva (borde marino)</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#E3B96B] bg-[#FDF3E3] rounded"></span>Mixto</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#CBD5E1] bg-[#F1F5F9] rounded opacity-60"></span>Deshabilitado</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block bg-white rounded" style="box-shadow:0 0 0 2px rgba(192,104,72,.95)"></span>Coincide con el filtro</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block bg-white rounded" style="outline:2px dashed #405060;outline-offset:1px"></span>Seleccionada</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#CBD5E1] bg-white rounded"></span><span data-i18n="Libre">Libre</span></span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#2962FF] bg-[#D9E6FD] rounded"></span><span data-i18n="Ocupado (color del servicio)">Ocupado (color del servicio)</span></span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#287080] bg-[#D3E5E8] rounded"></span><span data-i18n="Compartida (2 servicios)">Compartida (2 servicios)</span></span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border-2 border-[#405060] bg-white rounded"></span><span data-i18n="Tu reserva (borde marino)">Tu reserva (borde marino)</span></span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#E3B96B] bg-[#FDF3E3] rounded"></span><span data-i18n="Mixto">Mixto</span></span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block border border-[#CBD5E1] bg-[#F1F5F9] rounded opacity-60"></span><span data-i18n="Deshabilitado">Deshabilitado</span></span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block bg-white rounded" style="box-shadow:0 0 0 2px rgba(192,104,72,.95)"></span><span data-i18n="Coincide con el filtro">Coincide con el filtro</span></span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-block bg-white rounded" style="outline:2px dashed #405060;outline-offset:1px"></span><span data-i18n="Seleccionada">Seleccionada</span></span>
     </div>
   </section>
 
@@ -256,18 +261,18 @@
   <section id="mis" class="hidden p-5 max-w-6xl mx-auto">
     <div class="card overflow-hidden">
       <div class="px-5 py-4 border-b border-[#E5E7EB]">
-        <h3 class="font-extrabold text-base text-[#1F2937]">Mis próximas reservas</h3>
+        <h3 class="font-extrabold text-base text-[#1F2937]" data-i18n="Mis próximas reservas">Mis próximas reservas</h3>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-[#F1F5F9] border-b border-[#E5E7EB]">
             <tr>
-              <th class="th">Fecha</th>
-              <th class="th">Puesto</th>
-              <th class="th">Tramo</th>
-              <th class="th">Tipo</th>
-              <th class="th">Servicio</th>
-              <th class="th">Acción</th>
+              <th class="th" data-i18n="Fecha">Fecha</th>
+              <th class="th" data-i18n="Puesto">Puesto</th>
+              <th class="th" data-i18n="Tramo">Tramo</th>
+              <th class="th" data-i18n="Tipo">Tipo</th>
+              <th class="th" data-i18n="Servicio">Servicio</th>
+              <th class="th" data-i18n="Acción">Acción</th>
             </tr>
           </thead>
           <tbody id="mis-body"></tbody>
@@ -283,27 +288,12 @@
         <button onclick="calPaso(-1)" class="adm-mini">◀</button>
         <h3 id="cal-titulo" class="font-extrabold text-base text-[#1F2937]"></h3>
         <button onclick="calPaso(1)" class="adm-mini">▶</button>
-        <span class="text-xs text-[#64748B] ml-auto">% ocupación del día · clic para reservar ese día</span>
+        <span class="text-xs text-[#64748B] ml-auto" data-i18n="% ocupación del día · clic para reservar ese día">% ocupación del día · clic para reservar ese día</span>
       </div>
       <div class="grid grid-cols-7 gap-1.5 mt-3 text-center text-[11px] font-bold text-[#64748B] uppercase">
-        <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+        <span data-i18n="Lun">Lun</span><span data-i18n="Mar">Mar</span><span data-i18n="Mié">Mié</span><span data-i18n="Jue">Jue</span><span data-i18n="Vie">Vie</span><span data-i18n="Sáb">Sáb</span><span data-i18n="Dom">Dom</span>
       </div>
       <div id="cal-grid" class="grid grid-cols-7 gap-1.5 mt-1.5"></div>
-    </div>
-  </section>
-
-  <!-- Compañeros -->
-  <section id="companeros" class="hidden p-5 max-w-6xl mx-auto">
-    <div class="card p-5 mb-5">
-      <div class="flex gap-2">
-        <input id="comp-q" type="text" placeholder="Nombre o usuario…" class="inp flex-1" onkeydown="if(event.key==='Enter')buscarCompaneros()">
-        <button onclick="buscarCompaneros()" class="btn btn-navy">Buscar</button>
-      </div>
-      <div id="comp-result" class="mt-3 space-y-2"></div>
-    </div>
-    <div id="comp-detalle-wrap" class="card p-5 hidden">
-      <h3 id="comp-detalle-titulo" class="font-extrabold text-base text-[#1F2937]"></h3>
-      <div id="comp-detalle" class="mt-3 space-y-2"></div>
     </div>
   </section>
 
@@ -311,36 +301,36 @@
   <section id="historico" class="hidden p-5 max-w-6xl mx-auto">
     <div class="card overflow-hidden">
       <div class="px-5 py-4 bg-[#F8FAFC] border-b border-[#E5E7EB] flex items-end gap-3 flex-wrap">
-        <div><label class="block text-xs font-semibold sub mb-1.5">Desde</label><input id="hist-fecha-desde" type="date" class="inp"></div>
-        <div><label class="block text-xs font-semibold sub mb-1.5">Hasta</label><input id="hist-fecha-hasta" type="date" class="inp"></div>
-        <div><label class="block text-xs font-semibold sub mb-1.5">Servicio</label><select id="hist-servicio" class="inp"></select></div>
-        <div><label class="block text-xs font-semibold sub mb-1.5">Departamento</label><select id="hist-departamento" class="inp"></select></div>
-        <div><label class="block text-xs font-semibold sub mb-1.5">Tipo</label>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Desde">Desde</label><input id="hist-fecha-desde" type="date" class="inp"></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Hasta">Hasta</label><input id="hist-fecha-hasta" type="date" class="inp"></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Servicio">Servicio</label><select id="hist-servicio" class="inp"></select></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Departamento">Departamento</label><select id="hist-departamento" class="inp"></select></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Tipo">Tipo</label>
           <select id="hist-tipo" class="inp">
-            <option value="">Todos</option>
-            <option value="agente">Agente</option>
-            <option value="staff">Staff</option>
-            <option value="visita">Visita</option>
+            <option value="" data-i18n="Todos">Todos</option>
+            <option value="agente" data-i18n="Agente">Agente</option>
+            <option value="staff" data-i18n="Staff">Staff</option>
+            <option value="visita" data-i18n="Visita">Visita</option>
           </select>
         </div>
-        <button onclick="loadHistorico()" class="btn btn-navy">Filtrar</button>
-        <button onclick="limpiarHistorico()" class="btn btn-ghost">Limpiar</button>
-        <button onclick="exportarCSV('historico')" class="btn btn-ghost">CSV</button>
+        <button onclick="loadHistorico()" class="btn btn-navy" data-i18n="Filtrar">Filtrar</button>
+        <button onclick="limpiarHistorico()" class="btn btn-ghost" data-i18n="Limpiar">Limpiar</button>
+        <button onclick="exportarCSV('historico')" class="btn btn-ghost" data-i18n="CSV">CSV</button>
       </div>
       <div class="overflow-x-auto">
         <table id="tbl-historico" class="w-full">
           <thead class="bg-[#F1F5F9] border-b border-[#E5E7EB]">
             <tr>
-              <th class="th">Fecha</th>
-              <th class="th">Puesto</th>
-              <th class="th">Desde</th>
-              <th class="th">Hasta</th>
-              <th class="th">Tipo</th>
-              <th class="th">Servicio</th>
-              <th class="th">Departamento</th>
-              <th class="th">Reservado por</th>
-              <th class="th">Estado</th>
-              <th class="th">Comentario</th>
+              <th class="th" data-i18n="Fecha">Fecha</th>
+              <th class="th" data-i18n="Puesto">Puesto</th>
+              <th class="th" data-i18n="Desde">Desde</th>
+              <th class="th" data-i18n="Hasta">Hasta</th>
+              <th class="th" data-i18n="Tipo">Tipo</th>
+              <th class="th" data-i18n="Servicio">Servicio</th>
+              <th class="th" data-i18n="Departamento">Departamento</th>
+              <th class="th" data-i18n="Reservado por">Reservado por</th>
+              <th class="th" data-i18n="Estado">Estado</th>
+              <th class="th" data-i18n="Comentario">Comentario</th>
             </tr>
           </thead>
           <tbody id="hist-body"></tbody>
@@ -353,87 +343,87 @@
   <section id="reporting" class="hidden p-5 max-w-6xl mx-auto">
     <div class="card p-5 mb-5">
       <div class="flex items-end gap-3 flex-wrap">
-        <div><label class="block text-xs font-semibold sub mb-1.5">Desde</label><input id="rep-fecha-desde" type="date" class="inp"></div>
-        <div><label class="block text-xs font-semibold sub mb-1.5">Hasta</label><input id="rep-fecha-hasta" type="date" class="inp"></div>
-        <div><label class="block text-xs font-semibold sub mb-1.5">Servicio</label><select id="rep-servicio" class="inp" onchange="actualizaRepDepto()"></select></div>
-        <div><label class="block text-xs font-semibold sub mb-1.5">Departamento</label><select id="rep-departamento" class="inp"></select></div>
-        <div><label class="block text-xs font-semibold sub mb-1.5">Tipo</label>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Desde">Desde</label><input id="rep-fecha-desde" type="date" class="inp"></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Hasta">Hasta</label><input id="rep-fecha-hasta" type="date" class="inp"></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Servicio">Servicio</label><select id="rep-servicio" class="inp" onchange="actualizaRepDepto()"></select></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Departamento">Departamento</label><select id="rep-departamento" class="inp"></select></div>
+        <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Tipo">Tipo</label>
           <select id="rep-tipo" class="inp">
-            <option value="">Todos</option>
-            <option value="agente">Agente</option>
-            <option value="staff">Staff</option>
-            <option value="visita">Visita</option>
+            <option value="" data-i18n="Todos">Todos</option>
+            <option value="agente" data-i18n="Agente">Agente</option>
+            <option value="staff" data-i18n="Staff">Staff</option>
+            <option value="visita" data-i18n="Visita">Visita</option>
           </select>
         </div>
-        <button onclick="generarInforme()" class="btn btn-navy">Generar</button>
-        <button onclick="limpiarReporting()" class="btn btn-ghost">Limpiar</button>
-        <button onclick="exportarCSV('reporting')" class="btn btn-ghost">CSV</button>
+        <button onclick="generarInforme()" class="btn btn-navy" data-i18n="Generar">Generar</button>
+        <button onclick="limpiarReporting()" class="btn btn-ghost" data-i18n="Limpiar">Limpiar</button>
+        <button onclick="exportarCSV('reporting')" class="btn btn-ghost" data-i18n="CSV">CSV</button>
       </div>
-      <p class="text-xs text-[#94A3B8] mt-3">Ocupación = puestos con al menos una reserva activa ese día. Capacidad: 210 puestos/día (70 por zona).</p>
+      <p class="text-xs text-[#94A3B8] mt-3" data-i18n="Ocupación = puestos con al menos una reserva activa ese día. Capacidad: 210 puestos/día (70 por zona).">Ocupación = puestos con al menos una reserva activa ese día. Capacidad: 210 puestos/día (70 por zona).</p>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
       <div class="card p-4 text-center">
         <div id="rep-kpi-pct" class="text-3xl font-extrabold text-[#405060]">–</div>
-        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Ocupación global</div>
+        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1" data-i18n="Ocupación global">Ocupación global</div>
       </div>
       <div class="card p-4 text-center">
         <div id="rep-kpi-res" class="text-3xl font-extrabold text-[#1F2937]">–</div>
-        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Reservas activas</div>
+        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1" data-i18n="Reservas activas">Reservas activas</div>
       </div>
       <div class="card p-4 text-center">
         <div id="rep-kpi-puestos" class="text-3xl font-extrabold text-[#1F2937]">–</div>
-        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Puestos distintos</div>
+        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1" data-i18n="Puestos distintos">Puestos distintos</div>
       </div>
       <div class="card p-4 text-center">
         <div id="rep-kpi-dias" class="text-3xl font-extrabold text-[#1F2937]">–</div>
-        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1">Días analizados</div>
+        <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wide mt-1" data-i18n="Días analizados">Días analizados</div>
       </div>
     </div>
     <p id="rep-sub" class="text-xs text-[#64748B] mb-5 -mt-2"></p>
 
     <div class="grid md:grid-cols-2 gap-5">
       <div class="card p-5">
-        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Ocupación por servicio</h4>
-        <p class="text-[11px] text-[#94A3B8] mb-3">Nº reservas y % del total</p>
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1" data-i18n="Ocupación por servicio">Ocupación por servicio</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3" data-i18n="Nº reservas y % del total">Nº reservas y % del total</p>
         <div id="rep-por-servicio" class="space-y-2.5"></div>
       </div>
       <div class="card p-5">
-        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Ocupación por departamento</h4>
-        <p class="text-[11px] text-[#94A3B8] mb-3">Nº reservas y % del total</p>
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1" data-i18n="Ocupación por departamento">Ocupación por departamento</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3" data-i18n="Nº reservas y % del total">Nº reservas y % del total</p>
         <div id="rep-por-depto" class="space-y-2.5"></div>
       </div>
       <div class="card p-5">
-        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Por tipo</h4>
-        <p class="text-[11px] text-[#94A3B8] mb-3">Agente · Staff · Visita</p>
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1" data-i18n="Por tipo">Por tipo</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3" data-i18n="Agente · Staff · Visita">Agente · Staff · Visita</p>
         <div id="rep-por-tipo" class="space-y-2.5"></div>
       </div>
       <div class="card p-5">
-        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Por planta y zona</h4>
-        <p class="text-[11px] text-[#94A3B8] mb-3">% sobre su capacidad (70 puestos/día)</p>
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1" data-i18n="Por planta y zona">Por planta y zona</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3" data-i18n="% sobre su capacidad (70 puestos/día)">% sobre su capacidad (70 puestos/día)</p>
         <div id="rep-por-zona" class="space-y-2.5"></div>
       </div>
       <div class="card p-5">
-        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Ocupación por día de semana</h4>
-        <p class="text-[11px] text-[#94A3B8] mb-3">Media de puestos ocupados</p>
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1" data-i18n="Ocupación por día de semana">Ocupación por día de semana</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3" data-i18n="Media de puestos ocupados">Media de puestos ocupados</p>
         <div id="rep-por-semana" class="space-y-2.5"></div>
       </div>
       <div class="card p-5">
-        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-3">Días con más y menos ocupación</h4>
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-3" data-i18n="Días con más y menos ocupación">Días con más y menos ocupación</h4>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <p class="text-[11px] font-semibold text-[#B4443C] mb-2">Más ocupación</p>
+            <p class="text-[11px] font-semibold text-[#B4443C] mb-2" data-i18n="Más ocupación">Más ocupación</p>
             <div id="rep-top-altos" class="space-y-2.5"></div>
           </div>
           <div>
-            <p class="text-[11px] font-semibold text-[#405060] mb-2">Más disponibilidad</p>
+            <p class="text-[11px] font-semibold text-[#405060] mb-2" data-i18n="Más disponibilidad">Más disponibilidad</p>
             <div id="rep-top-bajos" class="space-y-2.5"></div>
           </div>
         </div>
       </div>
       <div class="card p-5 md:col-span-2">
-        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1">Quién reserva</h4>
-        <p class="text-[11px] text-[#94A3B8] mb-3">Usuarios con más reservas activas</p>
+        <h4 class="text-xs font-bold text-[#64748B] uppercase tracking-wide mb-1" data-i18n="Quién reserva">Quién reserva</h4>
+        <p class="text-[11px] text-[#94A3B8] mb-3" data-i18n="Usuarios con más reservas activas">Usuarios con más reservas activas</p>
         <div id="rep-usuarios" class="space-y-2.5"></div>
       </div>
     </div>
@@ -442,37 +432,37 @@
   <!-- Admin -->
   <section id="admin" class="hidden p-5 max-w-6xl mx-auto">
     <div class="flex gap-1.5 mb-5">
-      <button data-admintab="usuarios" onclick="showAdminTab('usuarios')" class="admintab">Usuarios</button>
-      <button data-admintab="servicios" onclick="showAdminTab('servicios')" class="admintab">Servicios</button>
-      <button data-admintab="puestos" onclick="showAdminTab('puestos')" class="admintab">Puestos</button>
-      <button data-admintab="sistema" onclick="showAdminTab('sistema')" class="admintab">Sistema</button>
+      <button data-admintab="usuarios" onclick="showAdminTab('usuarios')" class="admintab" data-i18n="Usuarios">Usuarios</button>
+      <button data-admintab="servicios" onclick="showAdminTab('servicios')" class="admintab" data-i18n="Servicios">Servicios</button>
+      <button data-admintab="puestos" onclick="showAdminTab('puestos')" class="admintab" data-i18n="Puestos">Puestos</button>
+      <button data-admintab="sistema" onclick="showAdminTab('sistema')" class="admintab" data-i18n="Sistema">Sistema</button>
     </div>
     <div id="adm-tab-usuarios" class="grid md:grid-cols-3 gap-5">
       <!-- Nuevo usuario -->
       <div class="card p-5">
-        <h2 class="font-bold text-[#1F2937] mb-3">Nuevo usuario</h2>
+        <h2 class="font-bold text-[#1F2937] mb-3" data-i18n="Nuevo usuario">Nuevo usuario</h2>
         <div class="space-y-2">
-          <input id="admin-user-username" type="text" placeholder="Usuario" class="inp w-full">
-          <input id="admin-user-password" type="password" placeholder="Contraseña" class="inp w-full">
-          <input id="admin-user-nombre" type="text" placeholder="Nombre" class="inp w-full">
+          <input id="admin-user-username" type="text" placeholder="Usuario" data-i18n-placeholder="Usuario" class="inp w-full">
+          <input id="admin-user-password" type="password" placeholder="Contraseña" data-i18n-placeholder="Contraseña" class="inp w-full">
+          <input id="admin-user-nombre" type="text" placeholder="Nombre" data-i18n-placeholder="Nombre" class="inp w-full">
           <select id="admin-user-rol" class="inp w-full">
             <option value="staff">Staff</option>
             <option value="admin">Admin</option>
           </select>
-          <button onclick="crearUsuario()" class="btn btn-navy w-full">Crear</button>
+          <button onclick="crearUsuario()" class="btn btn-navy w-full" data-i18n="Crear">Crear</button>
         </div>
       </div>
       <!-- Usuarios -->
       <div class="card p-5 md:col-span-2">
-        <h2 class="font-bold text-[#1F2937] mb-3">Usuarios</h2>
+        <h2 class="font-bold text-[#1F2937] mb-3" data-i18n="Usuarios">Usuarios</h2>
         <div class="overflow-x-auto">
           <table class="w-full">
             <thead>
               <tr class="text-left border-b border-[#E5E7EB]">
-                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Usuario</th>
-                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Nombre</th>
-                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2">Rol</th>
-                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5">Acciones</th>
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2" data-i18n="Usuario">Usuario</th>
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2" data-i18n="Nombre">Nombre</th>
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5 pr-2" data-i18n="Rol">Rol</th>
+                <th class="text-[11px] uppercase tracking-wide font-bold sub py-1.5" data-i18n="Acciones">Acciones</th>
               </tr>
             </thead>
             <tbody id="admin-usuarios"></tbody>
@@ -483,11 +473,11 @@
     <div id="adm-tab-servicios" class="hidden">
       <!-- Servicios y departamentos -->
       <div class="card p-5">
-        <h2 class="font-bold text-[#1F2937] mb-3">Servicios y departamentos</h2>
+        <h2 class="font-bold text-[#1F2937] mb-3" data-i18n="Servicios y departamentos">Servicios y departamentos</h2>
         <div class="flex gap-2 mb-4">
-          <input id="admin-serv-nombre" type="text" placeholder="Nuevo servicio" class="inp flex-1">
-          <input id="admin-serv-color" type="color" value="#2962FF" title="Color del servicio" class="w-10 h-10 p-1 border border-[#E2E4E9] rounded-[10px] cursor-pointer shrink-0">
-          <button onclick="crearServicio()" class="btn btn-navy">Añadir</button>
+          <input id="admin-serv-nombre" type="text" placeholder="Nuevo servicio" data-i18n-placeholder="Nuevo servicio" class="inp flex-1">
+          <input id="admin-serv-color" type="color" value="#2962FF" title="Color del servicio" data-i18n-title="Color del servicio" class="w-10 h-10 p-1 border border-[#E2E4E9] rounded-[10px] cursor-pointer shrink-0">
+          <button onclick="crearServicio()" class="btn btn-navy" data-i18n="Añadir">Añadir</button>
         </div>
         <div id="admin-grupos" class="space-y-3"></div>
       </div>
@@ -496,50 +486,44 @@
       <!-- Puestos -->
       <div class="card p-5">
         <div class="flex items-center gap-3 flex-wrap mb-1">
-          <h2 class="font-bold text-[#1F2937]">Puestos</h2>
+          <h2 class="font-bold text-[#1F2937]" data-i18n="Puestos">Puestos</h2>
           <span id="adm-puestos-count" class="text-xs text-[#64748B]"></span>
           <div class="ml-auto flex items-center gap-2">
-            <select id="adm-puesto-planta" class="inp" onchange="renderPuestosAdmin()">
-              <option value="2">Planta 2</option>
-              <option value="1">Planta 1</option>
-            </select>
-            <select id="adm-puesto-zona" class="inp" onchange="renderPuestosAdmin()">
-              <option value="ZI">Zona izquierda</option>
-              <option value="ZD">Zona derecha</option>
-            </select>
+            <select id="adm-puesto-planta" class="inp" onchange="renderPuestosAdmin()"></select>
+            <select id="adm-puesto-zona" class="inp" onchange="renderPuestosAdmin()"></select>
           </div>
         </div>
-        <p class="text-xs text-[#94A3B8] mb-3">Clic en un puesto para activarlo o desactivarlo. En modo eliminar, clic para borrarlo.</p>
+        <p class="text-xs text-[#94A3B8] mb-3" data-i18n="Clic en un puesto para activarlo o desactivarlo. En modo eliminar, clic para borrarlo.">Clic en un puesto para activarlo o desactivarlo. En modo eliminar, clic para borrarlo.</p>
         <div class="mb-3">
-          <p class="text-xs font-semibold sub mb-1.5">Orden de zonas en el plano</p>
+          <p class="text-xs font-semibold sub mb-1.5" data-i18n="Orden de zonas en el plano">Orden de zonas en el plano</p>
           <div id="adm-orden-zonas" class="flex gap-1.5 flex-wrap"></div>
         </div>
         <div id="adm-puestos-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-1.5"></div>
         <div class="mt-5 rounded-xl border border-[#E5E7EB] p-4">
-          <h3 class="font-bold text-sm text-[#1F2937] mb-3">Añadir puestos</h3>
+          <h3 class="font-bold text-sm text-[#1F2937] mb-3" data-i18n="Añadir puestos">Añadir puestos</h3>
           <div class="flex gap-2 flex-wrap items-end">
-            <div><label class="block text-xs font-semibold sub mb-1.5">Planta</label><input id="adm-np-planta" type="number" value="2" min="0" class="inp w-20"></div>
-            <div><label class="block text-xs font-semibold sub mb-1.5">Zona</label><select id="adm-np-zona" class="inp w-32" onchange="toggleZonaNueva()"></select></div>
-            <div id="adm-np-zona-new-wrap" class="hidden"><label class="block text-xs font-semibold sub mb-1.5">Nueva zona</label><input id="adm-np-zona-new" type="text" maxlength="4" placeholder="ZC" class="inp w-24 uppercase"></div>
-            <div><label class="block text-xs font-semibold sub mb-1.5">Fila</label><input id="adm-np-fila" type="number" value="1" min="1" class="inp w-20"></div>
-            <div><label class="block text-xs font-semibold sub mb-1.5">Despachos izq.</label><input id="adm-np-lado1" type="number" value="4" min="0" class="inp w-24"></div>
-            <div><label class="block text-xs font-semibold sub mb-1.5">Despachos der.</label><input id="adm-np-lado2" type="number" value="4" min="0" class="inp w-24"></div>
-            <button onclick="crearPuestosLote()" class="btn btn-navy">Generar</button>
+            <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Planta">Planta</label><input id="adm-np-planta" type="number" value="2" min="0" class="inp w-20"></div>
+            <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Zona">Zona</label><select id="adm-np-zona" class="inp w-32" onchange="toggleZonaNueva()"></select></div>
+            <div id="adm-np-zona-new-wrap" class="hidden"><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Nueva zona">Nueva zona</label><input id="adm-np-zona-new" type="text" maxlength="4" placeholder="ZC" class="inp w-24 uppercase"></div>
+            <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Fila">Fila</label><input id="adm-np-fila" type="number" value="1" min="1" class="inp w-20"></div>
+            <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Despachos izq.">Despachos izq.</label><input id="adm-np-lado1" type="number" value="4" min="0" class="inp w-24"></div>
+            <div><label class="block text-xs font-semibold sub mb-1.5" data-i18n="Despachos der.">Despachos der.</label><input id="adm-np-lado2" type="number" value="4" min="0" class="inp w-24"></div>
+            <button onclick="crearPuestosLote()" class="btn btn-navy" data-i18n="Generar">Generar</button>
           </div>
-          <p class="text-xs text-[#94A3B8] mt-2">Cada despacho crea 2 posiciones. La numeración continúa la existente de esa fila y lado.</p>
+          <p class="text-xs text-[#94A3B8] mt-2" data-i18n="Cada despacho crea 2 posiciones. La numeración continúa la existente de esa fila y lado.">Cada despacho crea 2 posiciones. La numeración continúa la existente de esa fila y lado.</p>
         </div>
         <div class="flex gap-2 mt-3">
-          <button id="adm-btn-borrar" onclick="toggleModoBorrar()" class="adm-mini">Eliminar puestos</button>
-          <button onclick="eliminarZonaAdmin()" class="adm-mini adm-danger">Eliminar zona</button>
-          <button onclick="eliminarPlantaAdmin()" class="adm-mini adm-danger">Eliminar planta</button>
+          <button id="adm-btn-borrar" onclick="toggleModoBorrar()" class="adm-mini" data-i18n="Eliminar puestos">Eliminar puestos</button>
+          <button onclick="eliminarZonaAdmin()" class="adm-mini adm-danger" data-i18n="Eliminar zona">Eliminar zona</button>
+          <button onclick="eliminarPlantaAdmin()" class="adm-mini adm-danger" data-i18n="Eliminar planta">Eliminar planta</button>
         </div>
       </div>
     </div>
     <div id="adm-tab-sistema" class="hidden">
       <div class="card p-5">
-        <h2 class="font-bold text-[#1F2937] mb-1">Copias de seguridad</h2>
-        <p class="text-xs text-[#94A3B8] mb-3">Copia automática al arrancar y cada día a las 03:00. Se conservan las 7 últimas.</p>
-        <button onclick="crearBackup()" class="btn btn-navy">Crear copia ahora</button>
+        <h2 class="font-bold text-[#1F2937] mb-1" data-i18n="Copias de seguridad">Copias de seguridad</h2>
+        <p class="text-xs text-[#94A3B8] mb-3" data-i18n="Copia automática al arrancar y cada día a las 03:00. Se conservan las 7 últimas.">Copia automática al arrancar y cada día a las 03:00. Se conservan las 7 últimas.</p>
+        <button onclick="crearBackup()" class="btn btn-navy" data-i18n="Crear copia ahora">Crear copia ahora</button>
         <ul id="backup-list" class="mt-3 text-sm text-[#1F2937] space-y-1"></ul>
       </div>
     </div>
@@ -556,57 +540,57 @@
         <div id="modal-masiva" class="hidden space-y-3">
           <p id="modal-masiva-info" class="text-sm text-[#1F2937]"></p>
           <div>
-            <label class="block text-xs font-semibold sub mb-1.5">Tipo</label>
+            <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Tipo">Tipo</label>
             <select id="modal-lote-tipo" class="inp w-full">
-              <option value="agente">Agente</option>
-              <option value="staff">Staff</option>
-              <option value="visita">Visita</option>
+              <option value="agente" data-i18n="Agente">Agente</option>
+              <option value="staff" data-i18n="Staff">Staff</option>
+              <option value="visita" data-i18n="Visita">Visita</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold sub mb-1.5">Servicio</label>
+            <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Servicio">Servicio</label>
             <select id="modal-lote-servicio" class="inp w-full" onchange="fillDeptosLote()"></select>
           </div>
           <div>
-            <label class="block text-xs font-semibold sub mb-1.5">Departamento</label>
+            <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Departamento">Departamento</label>
             <select id="modal-lote-departamento" class="inp w-full"></select>
           </div>
           <div>
-            <label class="block text-xs font-semibold sub mb-1.5">Motivo (obligatorio)</label>
-            <textarea id="modal-comentario" rows="3" class="inp w-full" placeholder="¿Por qué esta reserva masiva o visita?"></textarea>
+            <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Motivo (obligatorio)">Motivo (obligatorio)</label>
+            <textarea id="modal-comentario" rows="3" class="inp w-full" placeholder="¿Por qué esta reserva masiva o visita?" data-i18n-placeholder="¿Por qué esta reserva masiva o visita?"></textarea>
           </div>
         </div>
         <div id="modal-form" class="space-y-3">
         <div>
-          <label class="block text-xs font-semibold sub mb-1.5">Puesto</label>
+          <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Puesto">Puesto</label>
           <select id="modal-puesto" class="inp w-full"></select>
         </div>
         <div>
-          <label class="block text-xs font-semibold sub mb-1.5">Tipo</label>
+          <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Tipo">Tipo</label>
           <select id="modal-tipo" class="inp w-full">
-            <option value="agente">Agente</option>
-            <option value="staff">Staff</option>
-            <option value="visita">Visita</option>
+            <option value="agente" data-i18n="Agente">Agente</option>
+            <option value="staff" data-i18n="Staff">Staff</option>
+            <option value="visita" data-i18n="Visita">Visita</option>
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold sub mb-1.5">Servicio</label>
+          <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Servicio">Servicio</label>
           <select id="modal-servicio" class="inp w-full" onchange="fillDeptosForServicio()"></select>
         </div>
         <div>
-          <label class="block text-xs font-semibold sub mb-1.5">Departamento</label>
+          <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Departamento">Departamento</label>
           <select id="modal-departamento" class="inp w-full"></select>
         </div>
         <div>
-          <label class="block text-xs font-semibold sub mb-1.5">Repetir (semanas)</label>
+          <label class="block text-xs font-semibold sub mb-1.5" data-i18n="Repetir (semanas)">Repetir (semanas)</label>
           <input id="modal-repeticiones" type="number" value="1" min="1" max="12" class="inp w-full">
         </div>
         </div>
       </div>
       <div class="flex justify-end gap-2 px-6 pb-6">
-        <button onclick="closeModal()" class="btn btn-ghost">Cerrar</button>
-        <button id="modal-save" onclick="saveReserva()" class="btn btn-navy">Guardar</button>
-        <button id="modal-save-lote" onclick="saveLote()" class="btn btn-navy hidden">Reservar</button>
+        <button onclick="closeModal()" class="btn btn-ghost" data-i18n="Cerrar">Cerrar</button>
+        <button id="modal-save" onclick="saveReserva()" class="btn btn-navy" data-i18n="Guardar">Guardar</button>
+        <button id="modal-save-lote" onclick="saveLote()" class="btn btn-navy hidden" data-i18n="Reservar">Reservar</button>
       </div>
     </div>
   </div>
@@ -614,6 +598,7 @@
     </div>
   </div>
 
-  <script src="/app.js?v=6"></script>
+  <script src="/i18n.js?v=1"></script>
+  <script src="/app.js?v=7"></script>
 </body>
 </html>

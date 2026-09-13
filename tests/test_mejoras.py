@@ -77,23 +77,6 @@ def test_ocupacion(client):
     assert client.get("/api/ocupacion?desde=2026-09-08&hasta=2026-09-07", headers=hs).status_code == 400
 
 
-def test_buscar_y_reservas_usuario(client):
-    h = admin_h(client)
-    hs = auth_headers(client)
-    assert client.get("/api/usuarios/buscar", headers=hs).json() == []
-    res = client.get("/api/usuarios/buscar?q=staff", headers=hs).json()
-    assert any(u["username"] == "staff1" for u in res)
-    assert all("password_hash" not in u for u in res)
-    me = client.post("/api/auth/login", json={"username": "staff1", "password": "pass1234"}).json()["usuario"]
-    serv = client.get("/api/servicios", headers=hs).json()[0]["id"]
-    dep = client.get("/api/departamentos", headers=hs).json()[0]["id"]
-    pid = client.get("/api/puestos", headers=hs).json()[0]["id"]
-    _reserva(client, hs, pid, "2026-09-20", serv, dep)
-    mias = client.get(f"/api/reservas/usuario/{me['id']}", headers=h).json()
-    assert len(mias) == 1 and mias[0]["puesto"]["id"] == pid
-    assert client.get(f"/api/reservas/usuario/{me['id']}?desde=2026-09-21", headers=h).json() == []
-
-
 def test_export_csv(client):
     hs = auth_headers(client)
     serv = client.get("/api/servicios", headers=hs).json()[0]["id"]

@@ -1,6 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const state = { token: null, usuario: null, puestos: [], reservas: [], servicios: [], departamentos: [],
-  masiva: false, masivaSel: new Set(), modalModo: null };
+  masiva: false, masivaSel: new Set(), modalModo: null, view: null };
 let modalDesk = null;
 
 function api(path, opts = {}) {
@@ -13,7 +13,7 @@ function api(path, opts = {}) {
       const d = await r.json().catch(() => null);
       if (!r.ok) {
         if (r.status === 401 && !path.includes("/api/auth/login")) logout();
-        throw new Error(d?.detail || "Error");
+        throw new Error(d?.detail || t("Error"));
       }
       return d;
     });
@@ -52,9 +52,34 @@ function fillHistSelect(el, items) {
   fillSelect(el, items);
   const all = document.createElement("option");
   all.value = "";
-  all.textContent = "Todos";
+  all.textContent = t("Todos");
   el.prepend(all);
   el.value = "";
+}
+
+function tipoLabel(tt) {
+  return tt === "visita" ? t("Visita") : tt === "agente" ? t("Agente") : t("Staff");
+}
+
+function onI18n() {
+  if (!state.servicios || !state.departamentos) return;
+  const sav = {};
+  ["filtro-servicio", "filtro-departamento", "hist-servicio", "hist-departamento",
+   "rep-servicio", "rep-departamento", "modal-servicio", "modal-departamento",
+   "modal-lote-servicio", "modal-lote-departamento"].forEach(id => { sav[id] = $(id).value; });
+  fillSelect($("modal-servicio"), state.servicios);
+  fillSelect($("modal-departamento"), state.departamentos);
+  ["hist-servicio", "filtro-servicio", "rep-servicio"].forEach(id => fillHistSelect($(id), state.servicios));
+  ["hist-departamento", "filtro-departamento", "rep-departamento"].forEach(id => fillHistSelect($(id), state.departamentos));
+  fillDeptosForServicio();
+  fillServiciosLote();
+  fillDeptosLote();
+  Object.keys(sav).forEach(id => {
+    const el = $(id);
+    if (sav[id] !== "" && [...el.options].some(o => o.value === sav[id])) el.value = sav[id];
+  });
+  actualizaFiltroDepto();
+  actualizaRepDepto();
 }
 
 /* ── Login ── */
@@ -70,7 +95,7 @@ $("login-form").onsubmit = async (e) => {
     localStorage.setItem("nido_usuario", JSON.stringify(d.usuario));
     enter();
   } catch (err) {
-    $("login-error").textContent = err.message || "Credenciales inválidas";
+    $("login-error").textContent = err.message || t("Credenciales inválidas");
     $("login-error").classList.remove("hidden");
   }
 };
@@ -120,7 +145,8 @@ function logout() {
 }
 
 function show(view) {
-  ["reservar", "mis", "calendario", "companeros", "historico", "reporting", "admin"].forEach(v => {
+  state.view = view;
+  ["reservar", "mis", "calendario", "historico", "reporting", "admin"].forEach(v => {
     $(v).classList.toggle("hidden", v !== view);
   });
   document.querySelectorAll("[data-nav]").forEach(b => {
@@ -134,7 +160,7 @@ function show(view) {
   if (view === "admin") loadAdmin();
 }
 
-/* ── Mis reservas / Calendario / Compañeros ── */
+/* ── Mis reservas / Calendario ── */
 function loadMisReservas() {
   api("/api/mis-reservas").then(rs => {
     const body = $("mis-body");
@@ -143,7 +169,7 @@ function loadMisReservas() {
       const tr = document.createElement("tr");
       const td = document.createElement("td");
       td.colSpan = 6;
-      td.textContent = "Sin próximas reservas";
+      td.textContent = t("Sin próximas reservas");
       td.className = "td text-center py-6 text-[#94A3B8]";
       tr.appendChild(td);
       body.appendChild(tr);
@@ -153,7 +179,7 @@ function loadMisReservas() {
       const tr = document.createElement("tr");
       tr.className = "border-t border-[#E5E7EB] tr-hov";
       [`${r.fecha}`, r.puesto.codigo, `${tm(r.hora_inicio)}–${tm(r.hora_fin)}`,
-       cap(r.tipo), r.servicio.nombre].forEach(v => {
+       tipoLabel(r.tipo), r.servicio.nombre].forEach(v => {
         const td = document.createElement("td");
         td.className = "td";
         td.textContent = v;
@@ -163,7 +189,7 @@ function loadMisReservas() {
       tdA.className = "td";
       const b = document.createElement("button");
       b.className = "adm-mini adm-danger";
-      b.textContent = "Cancelar";
+      b.textContent = t("Cancelar");
       b.onclick = () => cancelReserva(r.id);
       tdA.appendChild(b);
       tr.appendChild(tdA);
@@ -172,8 +198,8 @@ function loadMisReservas() {
   }).catch(err => alert(err.message));
 }
 
-const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+const MESES = () => ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map(t);
 
 function calPaso(dir) {
   let y = state.calY, m = state.calM + dir;
@@ -191,7 +217,7 @@ function loadCalendario() {
     state.calM = hoy.getMonth();
   }
   const y = state.calY, m = state.calM;
-  $("cal-titulo").textContent = `${MESES[m]} ${y}`;
+  $("cal-titulo").textContent = `${MESES()[m]} ${y}`;
   const desde = `${y}-${String(m + 1).padStart(2, "0")}-01`;
   const hasta = `${y}-${String(m + 1).padStart(2, "0")}-${new Date(y, m + 1, 0).getDate()}`;
   api(`/api/ocupacion?desde=${desde}&hasta=${hasta}`).then(ocu => {
@@ -218,67 +244,10 @@ function loadCalendario() {
       pc.style.cssText = "font-size:10px;opacity:.75";
       pc.textContent = pct + "%";
       b.append(dn, pc);
-      b.title = `${f} · ${n} puestos · ${pct}%`;
+      b.title = `${f} · ${n} ${t("puestos")} · ${pct}%`;
       b.onclick = () => { $("fecha").value = f; show("reservar"); };
       grid.appendChild(b);
     }
-  }).catch(err => alert(err.message));
-}
-
-function buscarCompaneros() {
-  const q = $("comp-q").value.trim();
-  $("comp-detalle-wrap").classList.add("hidden");
-  api(`/api/usuarios/buscar?q=${encodeURIComponent(q)}`).then(us => {
-    const box = $("comp-result");
-    box.innerHTML = "";
-    if (!us.length) {
-      const p = document.createElement("p");
-      p.className = "text-sm text-[#94A3B8]";
-      p.textContent = q ? "Sin resultados" : "Escribe un nombre o usuario";
-      box.appendChild(p);
-      return;
-    }
-    us.forEach(u => {
-      const row = document.createElement("div");
-      row.className = "flex items-center gap-3 rounded-lg border border-[#E5E7EB] px-3 py-2";
-      const av = document.createElement("span");
-      av.className = "w-8 h-8 rounded-full bg-[#EDF2F7] text-[#405060] flex items-center justify-center font-bold text-sm shrink-0";
-      av.textContent = (u.nombre || "?")[0].toUpperCase();
-      const tx = document.createElement("span");
-      tx.className = "flex-1 text-sm text-[#1F2937]";
-      tx.textContent = `${u.nombre} · ${u.username} (${u.rol})`;
-      const b = document.createElement("button");
-      b.className = "adm-mini";
-      b.textContent = "Ver";
-      b.onclick = () => verCompanero(u.id, u.nombre);
-      row.append(av, tx, b);
-      box.appendChild(row);
-    });
-  }).catch(err => alert(err.message));
-}
-
-function verCompanero(id, nombre) {
-  api(`/api/reservas/usuario/${id}`).then(rs => {
-    $("comp-detalle-wrap").classList.remove("hidden");
-    $("comp-detalle-titulo").textContent = `Próximas reservas de ${nombre}`;
-    const box = $("comp-detalle");
-    box.innerHTML = "";
-    if (!rs.length) {
-      const p = document.createElement("p");
-      p.className = "text-sm text-[#94A3B8]";
-      p.textContent = "Sin próximas reservas";
-      box.appendChild(p);
-      return;
-    }
-    rs.forEach(r => {
-      const row = document.createElement("div");
-      row.className = "flex items-center gap-2 text-sm text-[#1F2937] rounded-lg border border-[#E5E7EB] px-3 py-2";
-      const txt = document.createElement("span");
-      txt.className = "flex-1";
-      txt.textContent = `${r.fecha} · ${r.puesto.codigo} · ${tm(r.hora_inicio)}–${tm(r.hora_fin)} · ${cap(r.tipo)} · ${r.servicio.nombre}`;
-      row.appendChild(txt);
-      box.appendChild(row);
-    });
   }).catch(err => alert(err.message));
 }
 
@@ -317,7 +286,7 @@ async function exportarCSV(origen) {
   try {
     const r = await fetch(`/api/historico/export${qs ? "?" + qs : ""}`,
       { headers: { Authorization: "Bearer " + state.token } });
-    if (!r.ok) throw new Error("Error al exportar");
+    if (!r.ok) throw new Error(t("Error al exportar"));
     const blob = await r.blob();
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -336,7 +305,7 @@ function renderHist(reservas) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
     td.colSpan = 10;
-    td.textContent = "No hay reservas";
+    td.textContent = t("No hay reservas");
     td.className = "td text-center py-6 text-[#94A3B8]";
     tr.appendChild(td);
     body.appendChild(tr);
@@ -350,7 +319,7 @@ function renderHist(reservas) {
       r.puesto.codigo,
       tm(r.hora_inicio),
       tm(r.hora_fin),
-      r.tipo[0].toUpperCase() + r.tipo.slice(1),
+      tipoLabel(r.tipo),
       r.servicio.nombre,
       r.departamento.nombre,
       r.usuario.nombre,
@@ -365,7 +334,7 @@ function renderHist(reservas) {
     tdEstado.className = "td";
     const badge = document.createElement("span");
     badge.className = "badge " + (r.cancelada ? "badge-no" : "badge-ok");
-    badge.textContent = r.cancelada ? "Cancelada" : "Activa";
+    badge.textContent = r.cancelada ? t("Cancelada") : t("Activa");
     tdEstado.appendChild(badge);
     tr.appendChild(tdEstado);
     const tdC = document.createElement("td");
@@ -394,12 +363,11 @@ function rangoFechas(desde, hasta) {
   while (d <= h) { out.push(fechaISO(d)); d = new Date(d.getTime() + 86400000); }
   return out;
 }
-const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const ORDEN_SEM = [1, 2, 3, 4, 5, 0, 6];
 
 function generarInforme() {
   const fd = $("rep-fecha-desde").value, fh = $("rep-fecha-hasta").value;
-  if (fd && fh && fd > fh) { alert("El rango de fechas no es válido"); return; }
+  if (fd && fh && fd > fh) { alert(t("El rango de fechas no es válido")); return; }
   const p = new URLSearchParams();
   const set = (k, v) => { if (v) p.set(k, v); };
   set("fecha_desde", fd);
@@ -450,8 +418,8 @@ function renderInforme(rs) {
   $("rep-kpi-puestos").textContent = new Set(activas.map(r => r.puesto.id)).size;
   $("rep-kpi-dias").textContent = nDias;
   $("rep-sub").textContent = (state.repDesde && state.repHasta)
-    ? `Periodo: ${state.repDesde} → ${state.repHasta} · solo reservas activas`
-    : "Todo el histórico · solo reservas activas";
+    ? tf("Periodo: {0} → {1} · solo reservas activas", state.repDesde, state.repHasta)
+    : t("Todo el histórico · solo reservas activas");
 
   const tot = activas.length;
   const pct = n => (tot ? Math.round(n / tot * 100) : 0);
@@ -473,14 +441,14 @@ function renderInforme(rs) {
   const elS = $("rep-por-servicio");
   elS.innerHTML = "";
   const sE = sorted(cS);
-  if (!sE.length) emptyRow(elS, "Sin datos en el periodo");
+  if (!sE.length) emptyRow(elS, t("Sin datos en el periodo"));
   const sMax = sE.length ? sE[0][1] : 0;
   sE.forEach(([n, c]) => barRow(elS, `${n} · ${pct(c)}%`, c, sMax, colDe(state.servicios, n, "#405060")));
 
   const elD = $("rep-por-depto");
   elD.innerHTML = "";
   const dE = sorted(cD);
-  if (!dE.length) emptyRow(elD, "Sin datos en el periodo");
+  if (!dE.length) emptyRow(elD, t("Sin datos en el periodo"));
   const dMax = dE.length ? dE[0][1] : 0;
   dE.forEach(([n, c]) => barRow(elD, `${n} · ${pct(c)}%`, c, dMax, colDe(state.departamentos, n, "#7C8DA0")));
 
@@ -488,20 +456,24 @@ function renderInforme(rs) {
   elT.innerHTML = "";
   const tC = { agente: "#405060", staff: "#94A3B8", visita: "#C06848" };
   const tMax = Math.max(cT.agente, cT.staff, cT.visita);
-  [["Agente", cT.agente], ["Staff", cT.staff], ["Visita", cT.visita]]
-    .forEach(([n, c]) => barRow(elT, `${n} · ${pct(c)}%`, c, tMax, tC[n.toLowerCase()]));
+  [
+    { n: t("Agente"), c: cT.agente, col: tC.agente },
+    { n: t("Staff"), c: cT.staff, col: tC.staff },
+    { n: t("Visita"), c: cT.visita, col: tC.visita }
+  ].forEach(x => barRow(elT, `${x.n} · ${pct(x.c)}%`, x.c, tMax, x.col));
 
   const elZ = $("rep-por-zona");
   elZ.innerHTML = "";
   const zE = Object.entries(porZona).map(([k, s]) => {
     const [pl, zo] = k.split("|");
     const capacidad = (capZona[k] || 0) * nDias;
-    return { label: `P${pl} · ${zo === "ZI" ? "Izquierda" : "Derecha"}`, n: s.size, p: capacidad ? Math.round(s.size / capacidad * 100) : 0 };
+    return { label: `P${pl} · ${zo === "ZI" ? t("Izquierda") : t("Derecha")}`, n: s.size, p: capacidad ? Math.round(s.size / capacidad * 100) : 0 };
   }).sort((a, b) => b.p - a.p);
-  if (!zE.length) emptyRow(elZ, "Sin datos en el periodo");
+  if (!zE.length) emptyRow(elZ, t("Sin datos en el periodo"));
   const zMax = zE.length ? zE[0].n : 0;
   zE.forEach(z => barRow(elZ, `${z.label} · ${z.p}%`, z.n, zMax, "#405060"));
 
+  const DIAS = () => [t("Dom"), t("Lun"), t("Mar"), t("Mié"), t("Jue"), t("Vie"), t("Sáb")];
   const semSum = [0, 0, 0, 0, 0, 0, 0], semCnt = [0, 0, 0, 0, 0, 0, 0];
   dias.forEach(f => {
     const wd = parseF(f).getDay();
@@ -510,7 +482,7 @@ function renderInforme(rs) {
   });
   const elW = $("rep-por-semana");
   elW.innerHTML = "";
-  const wData = ORDEN_SEM.map(wd => ({ label: DIAS[wd], avg: semCnt[wd] ? semSum[wd] / semCnt[wd] : 0 }));
+  const wData = ORDEN_SEM.map(wd => ({ label: DIAS()[wd], avg: semCnt[wd] ? semSum[wd] / semCnt[wd] : 0 }));
   const wMax = Math.max(1, ...wData.map(w => w.avg));
   wData.forEach(w => {
     const avgR = Math.round(w.avg * 10) / 10;
@@ -525,7 +497,7 @@ function renderInforme(rs) {
   const elB = $("rep-top-bajos");
   elB.innerHTML = "";
   const topMax = altos.length ? altos[0].n : 0;
-  if (!porDia.length) { emptyRow(elA, "Sin datos"); emptyRow(elB, "Sin datos"); }
+  if (!porDia.length) { emptyRow(elA, t("Sin datos")); emptyRow(elB, t("Sin datos")); }
   const dpct = n => (totalPuestos ? Math.round(n / totalPuestos * 100) : 0);
   altos.forEach(d => barRow(elA, `${d.f} · ${dpct(d.n)}%`, d.n, topMax, "#B4443C"));
   bajos.forEach(d => barRow(elB, `${d.f} · ${dpct(d.n)}%`, d.n, topMax, "#405060"));
@@ -533,7 +505,7 @@ function renderInforme(rs) {
   const elU = $("rep-usuarios");
   elU.innerHTML = "";
   const uE = sorted(cU).slice(0, 8);
-  if (!uE.length) emptyRow(elU, "Sin datos en el periodo");
+  if (!uE.length) emptyRow(elU, t("Sin datos en el periodo"));
   const uMax = uE.length ? uE[0][1] : 0;
   uE.forEach(([n, c]) => barRow(elU, n, c, uMax, "#405060"));
 }
@@ -569,7 +541,7 @@ function renderGrupos() {
       state.departamentos.filter(d => d.servicio_id === s.id), true, s.color));
   });
   const sin = state.departamentos.filter(d => !d.servicio_id);
-  if (sin.length) cont.appendChild(grupoBox(null, "Sin servicio", sin, false, null));
+  if (sin.length) cont.appendChild(grupoBox(null, t("Sin servicio"), sin, false, null));
 }
 
 function colorDot(color, cls = "") {
@@ -597,7 +569,7 @@ function grupoBox(servicioId, titulo, deptos, conAlta, color) {
   nm.textContent = titulo;
   const badge = document.createElement("span");
   badge.className = "text-[11px] text-[#64748B]";
-  badge.textContent = `${deptos.length} deptos.`;
+  badge.textContent = `${deptos.length} ${t("deptos.")}`;
   head.append(colorDot(color), nm);
   head.appendChild(badge);
   const sp = document.createElement("span");
@@ -605,9 +577,9 @@ function grupoBox(servicioId, titulo, deptos, conAlta, color) {
   head.appendChild(sp);
   if (servicioId !== null) {
     const s = state.servicios.find(x => x.id === servicioId);
-    head.append(miniBtn("Editar", "", () => editarServicioBox(s, box)),
+    head.append(miniBtn(t("Editar"), "", () => editarServicioBox(s, box)),
       document.createTextNode(" "),
-      miniBtn("Eliminar", "adm-danger", () => eliminarCatalogo("servicios", servicioId)));
+      miniBtn(t("Eliminar"), "adm-danger", () => eliminarCatalogo("servicios", servicioId)));
   }
   box.appendChild(head);
   const ul = document.createElement("ul");
@@ -615,7 +587,7 @@ function grupoBox(servicioId, titulo, deptos, conAlta, color) {
   if (!deptos.length) {
     const li = document.createElement("li");
     li.className = "text-[#94A3B8] py-1";
-    li.textContent = "Sin departamentos";
+    li.textContent = t("Sin departamentos");
     ul.appendChild(li);
   }
   deptos.forEach(d => {
@@ -629,8 +601,8 @@ function grupoBox(servicioId, titulo, deptos, conAlta, color) {
     spn.className = "flex-1 text-[#1F2937]";
     spn.textContent = d.nombre;
     li.append(dot, spn,
-      miniBtn("Editar", "", () => editarDeptoRow(d, li)),
-      miniBtn("Eliminar", "adm-danger", () => eliminarCatalogo("departamentos", d.id)));
+      miniBtn(t("Editar"), "", () => editarDeptoRow(d, li)),
+      miniBtn(t("Eliminar"), "adm-danger", () => eliminarCatalogo("departamentos", d.id)));
     ul.appendChild(li);
   });
   box.appendChild(ul);
@@ -639,16 +611,16 @@ function grupoBox(servicioId, titulo, deptos, conAlta, color) {
     add.className = "flex gap-2 px-3 py-2 border-t border-[#E5E7EB] bg-white";
     const inp = document.createElement("input");
     inp.className = "inp flex-1";
-    inp.placeholder = "Nuevo departamento";
+    inp.placeholder = t("Nuevo departamento");
     inp.id = `adm-newdepto-${servicioId}`;
     const btn = document.createElement("button");
     btn.className = "btn btn-navy";
     btn.style.padding = "7px 12px";
-    btn.textContent = "Añadir";
+    btn.textContent = t("Añadir");
     btn.onclick = () => crearDepartamento(servicioId);
     const col = colorPicker(PALETTE[(state.servicios.length + state.departamentos.length) % PALETTE.length]);
     col.id = `adm-newdepto-color-${servicioId}`;
-    col.title = "Color del departamento";
+    col.title = t("Color del departamento");
     add.append(inp, col, btn);
     box.appendChild(add);
   }
@@ -665,9 +637,9 @@ function editarServicioBox(s, box) {
   head.replaceChild(inp, nm);
   head.querySelectorAll("button").forEach(b => b.remove());
   head.append(col,
-    miniBtn("Guardar", "adm-save", () => guardarCatalogo("servicios", s.id, inp.value.trim(), col.value)),
+    miniBtn(t("Guardar"), "adm-save", () => guardarCatalogo("servicios", s.id, inp.value.trim(), col.value)),
     document.createTextNode(" "),
-    miniBtn("Cancelar", "", () => loadAdmin()));
+    miniBtn(t("Cancelar"), "", () => loadAdmin()));
   inp.focus();
   inp.select();
 }
@@ -679,8 +651,8 @@ function editarDeptoRow(d, li) {
   inp.value = d.nombre;
   const col = colorPicker(d.color);
   li.append(inp, col,
-    miniBtn("Guardar", "adm-save", () => guardarCatalogo("departamentos", d.id, inp.value.trim(), col.value)),
-    miniBtn("Cancelar", "", () => loadAdmin()));
+    miniBtn(t("Guardar"), "adm-save", () => guardarCatalogo("departamentos", d.id, inp.value.trim(), col.value)),
+    miniBtn(t("Cancelar"), "", () => loadAdmin()));
   inp.focus();
   inp.select();
 }
@@ -698,8 +670,8 @@ async function guardarCatalogo(kind, id, nombre, color) {
 
 async function eliminarCatalogo(kind, id) {
   const msg = kind === "servicios"
-    ? "¿Eliminar el servicio? También se eliminarán sus departamentos y sus reservas."
-    : "¿Eliminar? También se eliminarán sus reservas asociadas.";
+    ? t("¿Eliminar el servicio? También se eliminarán sus departamentos y sus reservas.")
+    : t("¿Eliminar? También se eliminarán sus reservas asociadas.");
   if (!confirm(msg)) return;
   try {
     await api(`/api/${kind}/${id}`, { method: "DELETE" });
@@ -718,7 +690,7 @@ function renderAdminUsuarios(usuarios) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
     td.colSpan = 4;
-    td.textContent = "Sin usuarios";
+    td.textContent = t("Sin usuarios");
     td.className = "td text-center py-6 text-[#94A3B8]";
     tr.appendChild(td);
     tbody.appendChild(tr);
@@ -736,9 +708,9 @@ function renderAdminUsuarios(usuarios) {
     }
     const tdA = document.createElement("td");
     tdA.className = "td whitespace-nowrap";
-    tdA.append(miniBtn("Editar", "", () => editarUsuario(u.id)),
+    tdA.append(miniBtn(t("Editar"), "", () => editarUsuario(u.id)),
       document.createTextNode(" "),
-      miniBtn("Eliminar", "adm-danger", () => eliminarUsuario(u.id)));
+      miniBtn(t("Eliminar"), "adm-danger", () => eliminarUsuario(u.id)));
     tr.appendChild(tdA);
     tbody.appendChild(tr);
   }
@@ -762,7 +734,7 @@ function editarUsuario(id) {
   const inpP = document.createElement("input");
   inpP.className = "inp au-pass w-full";
   inpP.type = "password";
-  inpP.placeholder = "Nueva contraseña (opcional)";
+  inpP.placeholder = t("Nueva contraseña (opcional)");
   tdN.append(inpN, inpP);
   const tdR = document.createElement("td");
   tdR.className = "td";
@@ -778,9 +750,9 @@ function editarUsuario(id) {
   tdR.appendChild(sel);
   const tdA = document.createElement("td");
   tdA.className = "td whitespace-nowrap";
-  tdA.append(miniBtn("Guardar", "adm-save", () => guardarUsuario(id)),
+  tdA.append(miniBtn(t("Guardar"), "adm-save", () => guardarUsuario(id)),
     document.createTextNode(" "),
-    miniBtn("Cancelar", "", () => loadAdmin()));
+    miniBtn(t("Cancelar"), "", () => loadAdmin()));
   tr.append(tdU, tdN, tdR, tdA);
   old.replaceWith(tr);
 }
@@ -802,7 +774,7 @@ async function guardarUsuario(id) {
 }
 
 async function eliminarUsuario(id) {
-  if (!confirm("¿Eliminar este usuario?")) return;
+  if (!confirm(t("¿Eliminar este usuario?"))) return;
   try {
     await api(`/api/usuarios/${id}`, { method: "DELETE" });
     loadAdmin();
@@ -829,13 +801,13 @@ function fillAdminPuestoSelects() {
   pls.forEach(p => {
     const o = document.createElement("option");
     o.value = p;
-    o.textContent = `Planta ${p}`;
+    o.textContent = tf("Planta {0}", p);
     selP.appendChild(o);
   });
   zns.forEach(z => {
     const o = document.createElement("option");
     o.value = z;
-    o.textContent = `Zona ${z}`;
+    o.textContent = tf("Zona {0}", z);
     selZ.appendChild(o);
   });
   if (pls.map(String).includes(curP)) selP.value = curP;
@@ -846,12 +818,12 @@ function fillAdminPuestoSelects() {
   zns.forEach(z => {
     const o = document.createElement("option");
     o.value = z;
-    o.textContent = `Zona ${z}`;
+    o.textContent = tf("Zona {0}", z);
     selN.appendChild(o);
   });
   const nn = document.createElement("option");
   nn.value = "__new__";
-  nn.textContent = "+ Nueva zona…";
+  nn.textContent = t("+ Nueva zona…");
   selN.appendChild(nn);
   if (zns.includes(curN)) selN.value = curN;
   toggleZonaNueva();
@@ -884,7 +856,7 @@ function renderOrdenZonas() {
   if (zns.length < 2) {
     const s = document.createElement("span");
     s.className = "text-xs text-[#94A3B8]";
-    s.textContent = zns.length ? "Una sola zona" : "Sin zonas";
+    s.textContent = zns.length ? t("Una sola zona") : t("Sin zonas");
     cont.appendChild(s);
     return;
   }
@@ -895,7 +867,7 @@ function renderOrdenZonas() {
     bl.className = "adm-mini";
     bl.style.padding = "1px 7px";
     bl.textContent = "◀";
-    bl.title = "Mover a la izquierda";
+    bl.title = t("Mover a la izquierda");
     bl.disabled = i === 0;
     bl.style.opacity = i === 0 ? ".4" : "1";
     bl.onclick = () => moverZona(pl, i, -1);
@@ -905,7 +877,7 @@ function renderOrdenZonas() {
     br.className = "adm-mini";
     br.style.padding = "1px 7px";
     br.textContent = "▶";
-    br.title = "Mover a la derecha";
+    br.title = t("Mover a la derecha");
     br.disabled = i === zns.length - 1;
     br.style.opacity = i === zns.length - 1 ? ".4" : "1";
     br.onclick = () => moverZona(pl, i, 1);
@@ -935,11 +907,11 @@ function renderPuestosAdmin() {
   const grid = $("adm-puestos-grid");
   grid.innerHTML = "";
   const act = list.filter(p => p.activo).length;
-  $("adm-puestos-count").textContent = `${act}/${list.length} activos`;
+  $("adm-puestos-count").textContent = `${act}/${list.length} ${t("activos")}`;
   list.forEach(p => {
     const b = document.createElement("button");
     b.className = "adm-chip" + (p.activo ? " adm-chip-on" : " adm-chip-off");
-    b.title = `${p.codigo} · ${p.activo ? "Activo (clic para desactivar)" : "Inactivo (clic para activar)"}`;
+    b.title = `${p.codigo} · ${p.activo ? t("Activo (clic para desactivar)") : t("Inactivo (clic para activar)")}`;
     b.textContent = `F${p.fila}-L${p.lado}-${p.posicion}`;
     b.onclick = () => {
       if (state.adminBorrar) eliminarPuesto(p.id, p.codigo);
@@ -967,14 +939,14 @@ async function crearPuestosLote() {
   const l1 = +$("adm-np-lado1").value || 0;
   const l2 = +$("adm-np-lado2").value || 0;
   if (!zona || !(fila >= 1) || l1 + l2 === 0) {
-    alert("Revisa los datos: zona, fila y al menos un despacho");
+    alert(t("Revisa los datos: zona, fila y al menos un despacho"));
     return;
   }
   try {
     const creados = await api("/api/puestos/lote", {
       method: "POST", json: { planta, zona, fila, lados: { 1: l1, 2: l2 } },
     });
-    alert(`Creados ${creados.length} puestos`);
+    alert(tf("Creados {0} puestos", creados.length));
     loadPuestosAdmin();
   } catch (err) {
     alert(err.message);
@@ -984,12 +956,12 @@ async function crearPuestosLote() {
 function toggleModoBorrar() {
   state.adminBorrar = !state.adminBorrar;
   const b = $("adm-btn-borrar");
-  b.textContent = state.adminBorrar ? "Terminar" : "Eliminar puestos";
+  b.textContent = state.adminBorrar ? t("Terminar") : t("Eliminar puestos");
   b.classList.toggle("adm-danger", !!state.adminBorrar);
 }
 
 async function eliminarPuesto(id, codigo) {
-  if (!confirm(`¿Eliminar ${codigo}? No se puede si tiene reservas.`)) return;
+  if (!confirm(tf("¿Eliminar {0}? No se puede si tiene reservas.", codigo))) return;
   try {
     await api(`/api/puestos/${id}`, { method: "DELETE" });
     loadPuestosAdmin();
@@ -1001,7 +973,7 @@ async function eliminarPuesto(id, codigo) {
 function eliminarZonaAdmin() {
   const pl = $("adm-puesto-planta").value, zo = $("adm-puesto-zona").value;
   const n = (state.adminPuestos || []).filter(p => String(p.planta) === pl && p.zona === zo).length;
-  if (!confirm(`¿Eliminar la zona ${zo} de la planta ${pl}? Se eliminarán ${n} puestos y sus reservas.`)) return;
+  if (!confirm(tf("¿Eliminar la zona {0} de la planta {1}? Se eliminarán {2} puestos y sus reservas.", zo, pl, n))) return;
   api(`/api/zonas?planta=${pl}&zona=${encodeURIComponent(zo)}`, { method: "DELETE" })
     .then(() => loadPuestosAdmin()).catch(err => alert(err.message));
 }
@@ -1009,7 +981,7 @@ function eliminarZonaAdmin() {
 function eliminarPlantaAdmin() {
   const pl = $("adm-puesto-planta").value;
   const n = (state.adminPuestos || []).filter(p => String(p.planta) === pl).length;
-  if (!confirm(`¿Eliminar la planta ${pl} entera? Se eliminarán ${n} puestos y sus reservas.`)) return;
+  if (!confirm(tf("¿Eliminar la planta {0} entera? Se eliminarán {1} puestos y sus reservas.", pl, n))) return;
   api(`/api/plantas/${pl}`, { method: "DELETE" })
     .then(() => loadPuestosAdmin()).catch(err => alert(err.message));
 }
@@ -1038,7 +1010,7 @@ function actualizaFiltroDepto() {
   sel.innerHTML = "";
   const all = document.createElement("option");
   all.value = "";
-  all.textContent = "Todos";
+  all.textContent = t("Todos");
   sel.appendChild(all);
   if (!sid) {
     sel.value = "";
@@ -1069,7 +1041,7 @@ function actualizaRepDepto() {
   sel.innerHTML = "";
   const all = document.createElement("option");
   all.value = "";
-  all.textContent = "Todos";
+  all.textContent = t("Todos");
   sel.appendChild(all);
   if (!sid) {
     sel.value = "";
@@ -1108,7 +1080,7 @@ function cargarBackups() {
     if (!fs.length) {
       const li = document.createElement("li");
       li.className = "text-[#94A3B8]";
-      li.textContent = "Aún no hay copias";
+      li.textContent = t("Aún no hay copias");
       ul.appendChild(li);
       return;
     }
@@ -1123,7 +1095,7 @@ function cargarBackups() {
 async function crearBackup() {
   try {
     const r = await api("/api/ajustes/backup", { method: "POST" });
-    alert(`Copia creada: ${r.archivo}`);
+    alert(tf("Copia creada: {0}", r.archivo));
     cargarBackups();
   } catch (err) {
     alert(err.message);
@@ -1300,7 +1272,7 @@ function renderResumen() {
     dot.style.cssText = `width:9px;height:9px;border-radius:9999px;background:${pc < 70 ? "#27AE60" : pc < 90 ? "#D9A35E" : "#B4443C"}`;
     const tx = document.createElement("span");
     tx.textContent = `P${pl} · ${o}/${t}`;
-    tx.title = `${pc}% ocupación`;
+    tx.title = `${pc}% ${t("ocupacion")}`;
     chip.append(dot, tx);
     af.appendChild(chip);
   });
@@ -1316,14 +1288,14 @@ function renderResumen() {
   const sEl = $("res-servicios");
   sEl.innerHTML = "";
   const sEntries = Object.entries(byServ).sort((a, b) => b[1] - a[1]);
-  if (!sEntries.length) emptyRow(sEl, "Sin reservas en este tramo");
+  if (!sEntries.length) emptyRow(sEl, t("Sin reservas en este tramo"));
   const sMax = sEntries.length ? sEntries[0][1] : 0;
   sEntries.forEach(([n, c]) => barRow(sEl, n, c, sMax, "#405060"));
 
   const dEl = $("res-deptos");
   dEl.innerHTML = "";
   const dEntries = Object.entries(byDep).sort((a, b) => b[1] - a[1]);
-  if (!dEntries.length) emptyRow(dEl, "Sin reservas en este tramo");
+  if (!dEntries.length) emptyRow(dEl, t("Sin reservas en este tramo"));
   const dMax = dEntries.length ? dEntries[0][1] : 0;
   dEntries.forEach(([n, c]) => barRow(dEl, n, c, dMax, "#7C8DA0"));
 
@@ -1331,8 +1303,8 @@ function renderResumen() {
   tEl.innerHTML = "";
   const tColors = { agente: "#405060", staff: "#94A3B8", visita: "#C06848" };
   const tMax = Math.max(byTipo.agente, byTipo.staff, byTipo.visita);
-  [["Agente", byTipo.agente], ["Staff", byTipo.staff], ["Visita", byTipo.visita]]
-    .forEach(([n, c]) => barRow(tEl, n, c, tMax, tColors[n.toLowerCase()]));
+  [[t("Agente"), byTipo.agente, tColors.agente], [t("Staff"), byTipo.staff, tColors.staff], [t("Visita"), byTipo.visita, tColors.visita]]
+    .forEach(([n, c, col]) => barRow(tEl, n, c, tMax, col));
 }
 
 /* ── Render plan ── */
@@ -1378,7 +1350,7 @@ function renderPlan() {
       const pDesks = allDesks.filter(d => d.planta === planta);
       const card = document.createElement("div");
       card.className = "card plan-card p-5";
-      card.innerHTML = `<h3 class="font-extrabold text-base text-[#1F2937] mb-3">Planta ${planta}</h3>`;
+      card.innerHTML = `<h3 class="font-extrabold text-base text-[#1F2937] mb-3">${tf("Planta {0}", planta)}</h3>`;
 
       const zonas = ordenarZonas([...new Set(pDesks.map(d => d.zona))], planta);
       const multiZona = zonas.length >= 2;
@@ -1390,14 +1362,14 @@ function renderPlan() {
         const zDesks = pDesks.filter(d => d.zona === zona);
         const zonaEl = document.createElement("div");
         zonaEl.className = "flex-1";
-        const zonaLabel = zona === "ZI" ? "Izquierda" : "Derecha";
+        const zonaLabel = zona === "ZI" ? t("Izquierda") : t("Derecha");
         const count = zDesks.reduce((s, d) => s + d.positions.length, 0);
-        zonaEl.innerHTML = `<h4 class="text-sm font-semibold mb-2 text-[#405060]">Zona ${zonaLabel} <span class="font-normal text-[#64748B]">(${count} puestos)</span></h4>`;
+        zonaEl.innerHTML = `<h4 class="text-sm font-semibold mb-2 text-[#405060]">${t("Zona")} ${zonaLabel} <span class="font-normal text-[#64748B]">(${count} ${t("puestos")})</span></h4>`;
         if (state.masiva) {
           const btnT = document.createElement("button");
           btnT.className = "adm-mini mb-2";
-          btnT.textContent = "Toda";
-          btnT.title = "Seleccionar toda la zona libre";
+          btnT.textContent = t("Toda");
+          btnT.title = t("Seleccionar toda la zona libre");
           btnT.onclick = () => seleccionarZona(zDesks, desde, hasta);
           zonaEl.appendChild(btnT);
         }
@@ -1431,7 +1403,7 @@ function renderPlan() {
         if (multiZona && zi < zonas.length - 1) {
           const pasillo = document.createElement("div");
           pasillo.className = "w-8 flex flex-col items-center justify-center self-stretch pt-8";
-          pasillo.innerHTML = `<div class="div-v flex-1"></div><span class="text-[10px] text-[#94A3B8] rotate-90 whitespace-nowrap my-2 tracking-wider">PASILLO</span><div class="div-v flex-1"></div>`;
+          pasillo.innerHTML = `<div class="div-v flex-1"></div><span class="text-[10px] text-[#94A3B8] rotate-90 whitespace-nowrap my-2 tracking-wider">${t("PASILLO")}</span><div class="div-v flex-1"></div>`;
           zonasRow.appendChild(pasillo);
         }
       });
@@ -1439,7 +1411,7 @@ function renderPlan() {
       if (!multiZona) {
         const placeholder = document.createElement("div");
         placeholder.className = "flex-1 border-2 border-dashed border-[#CBD5E1] rounded-lg flex items-center justify-center h-48 text-[#94A3B8] bg-[#F8FAFC]";
-        placeholder.textContent = "No disponible";
+        placeholder.textContent = t("No disponible");
         zonasRow.appendChild(placeholder);
       }
 
@@ -1458,22 +1430,24 @@ function deskEl(desk, desde, hasta) {
 
   if (status.state === "disabled") {
     el.classList.add("desk-disabled", "cursor-default");
-    el.title = "Deshabilitado";
+    el.title = t("Deshabilitado");
   } else   if (status.state === "mine") {
     const r = status.reservations[0];
     el.classList.add("desk-mine");
-    el.title = `Tu reserva · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para ver y cancelar`;
+    el.title = tf("Tu reserva · {0} {1}-{2} · Clic para ver y cancelar",
+      tipoLabel(r.tipo), tm(r.hora_inicio), tm(r.hora_fin));
     el.onclick = () => (state.masiva && status.freeIds.length
       ? toggleSeleccion(desk, desde, hasta)
       : openModal(desk, status.freeIds, desde, hasta));
   } else if (status.state === "occupied") {
     const r = status.reservations[0];
     el.classList.add("desk-occupied");
-    el.title = `Ocupado: ${r.servicio.nombre} · ${r.departamento.nombre} · ${r.tipo} ${tm(r.hora_inicio)}-${tm(r.hora_fin)} · Clic para ver`;
+    el.title = tf("Ocupado: {0} · {1} · {2} {3}-{4} · Clic para ver",
+      r.servicio.nombre, r.departamento.nombre, tipoLabel(r.tipo), tm(r.hora_inicio), tm(r.hora_fin));
     el.onclick = () => openModal(desk, [], desde, hasta);
   } else if (status.state === "mixed") {
     el.classList.add("desk-mixed");
-    el.title = "Algunas posiciones libres · Clic para ver y reservar";
+    el.title = t("Algunas posiciones libres · Clic para ver y reservar");
     el.onclick = () => (state.masiva ? toggleSeleccion(desk, desde, hasta) : openModal(desk, status.freeIds, desde, hasta));
   } else if (status.state === "free") {
     el.classList.add("desk-free");
@@ -1488,7 +1462,7 @@ function deskEl(desk, desde, hasta) {
     if (ss.length >= 2) {
       el.style.background = tint(COLOR_SHARED);
       el.style.borderColor = COLOR_SHARED;
-      el.title = `Compartida: ${ss.map(s => s.nombre).join(" + ")} · Clic para ver`;
+      el.title = tf("Compartida: {0} + {1} · Clic para ver", ss[0].nombre, ss[1].nombre);
     } else if (ss.length === 1) {
       el.style.background = tint(ss[0].color);
       el.style.borderColor = normColor(ss[0].color);
@@ -1504,7 +1478,7 @@ function deskEl(desk, desde, hasta) {
       (!fS || r.servicio.id === fS) && (!fD || r.departamento.id === fD));
     if (match) {
       el.classList.add("desk-match");
-      el.title = "Coincide con el filtro · " + el.title;
+      el.title = tf("Coincide con el filtro · {0}", el.title);
     } else if (status.state !== "free" && status.state !== "disabled") {
       el.classList.add("desk-dim");
     }
@@ -1557,9 +1531,9 @@ function openModalLote() {
   const ids = [...(state.masivaSel || [])];
   if (!ids.length) return;
   state.modalModo = "lote";
-  $("modal-title").textContent = `Reserva masiva · ${ids.length} puestos`;
+  $("modal-title").textContent = tf("Reserva masiva · {0} puestos", ids.length);
   $("modal-info").innerHTML = "";
-  $("modal-masiva-info").textContent = `${ids.length} puestos · ${state.fecha} · ${state.desde}–${state.hasta}`;
+  $("modal-masiva-info").textContent = `${ids.length} ${t("puestos")} · ${state.fecha} · ${state.desde}–${state.hasta}`;
   fillServiciosLote();
   fillDeptosLote();
   $("modal-form").classList.add("hidden");
@@ -1596,7 +1570,7 @@ async function saveLote() {
   const ids = [...(state.masivaSel || [])];
   const comentario = $("modal-comentario").value.trim();
   if (!comentario) {
-    alert("Indica el motivo de la reserva");
+    alert(t("Indica el motivo de la reserva"));
     return;
   }
   try {
@@ -1625,8 +1599,6 @@ function reservaEn(puestoId, desde, hasta) {
   return state.reservas.find(r => r.puesto.id === puestoId && overlaps(r, desde, hasta));
 }
 
-function cap(s) { return s[0].toUpperCase() + s.slice(1); }
-
 function fillDeptosForServicio() {
   const sid = +$("modal-servicio").value || null;
   const sel = $("modal-departamento");
@@ -1653,7 +1625,7 @@ function openModal(desk, freeIds, desde, hasta) {
   desde = desde || state.desde;
   hasta = hasta || state.hasta;
   const hasFree = !freeIds || freeIds.length > 0;
-  $("modal-title").textContent = `${hasFree ? "Reservar" : "Mesa"} · ${desk.codigos.join(" / ")}`;
+  $("modal-title").textContent = `${t(hasFree ? "Reservar" : "Mesa")} · ${desk.codigos.join(" / ")}`;
   fillDeptosForServicio();
   const info = $("modal-info");
   info.innerHTML = "";
@@ -1664,11 +1636,11 @@ function openModal(desk, freeIds, desde, hasta) {
     const txt = document.createElement("span");
     if (!p.activo) {
       txt.className = "text-[#94A3B8]";
-      txt.textContent = `${p.codigo} · Deshabilitado`;
+      txt.textContent = `${p.codigo} · ${t("Deshabilitado")}`;
       row.appendChild(txt);
     } else if (!r) {
       txt.className = "text-[#64748B]";
-      txt.textContent = `${p.codigo} · Libre`;
+      txt.textContent = `${p.codigo} · ${t("Libre")}`;
       row.appendChild(txt);
     } else {
       const own = r.usuario.id === state.usuario.id;
@@ -1676,12 +1648,12 @@ function openModal(desk, freeIds, desde, hasta) {
       const dot = document.createElement("span");
       dot.style.cssText = `width:10px;height:10px;border-radius:9999px;flex-shrink:0;background:${normColor(r.departamento.color)}`;
       txt.className = "text-[#1F2937] flex-1";
-      txt.textContent = `${p.codigo} · ${r.servicio.nombre} · ${r.departamento.nombre} · ${cap(r.tipo)}${own ? " (tuya)" : (isAdmin ? ` · ${r.usuario.nombre}` : "")}`;
+      txt.textContent = `${p.codigo} · ${r.servicio.nombre} · ${r.departamento.nombre} · ${tipoLabel(r.tipo)}${own ? ` (${t("tuya")})` : (isAdmin ? ` · ${r.usuario.nombre}` : "")}`;
       row.append(dot, txt);
       const fav = document.createElement("button");
       const esFav = state.usuario.favorito_puesto_id === p.id;
       fav.textContent = "★";
-      fav.title = esFav ? "Quitar de favorito" : "Marcar como mi puesto";
+      fav.title = esFav ? t("Quitar de favorito") : t("Marcar como mi puesto");
       fav.style.cssText = `font-size:15px;line-height:1;color:${esFav ? "#C06848" : "#CBD5E1"}`;
       fav.onclick = () => setFavorito(esFav ? null : p.id);
       row.appendChild(fav);
@@ -1690,7 +1662,7 @@ function openModal(desk, freeIds, desde, hasta) {
         b.className = "btn btn-ghost";
         b.style.padding = "4px 10px";
         b.style.fontSize = "12px";
-        b.textContent = "Cancelar";
+        b.textContent = t("Cancelar");
         b.onclick = () => cancelReserva(r.id);
         row.appendChild(b);
       }
@@ -1730,12 +1702,12 @@ async function setFavorito(pid) {
 function irAFavorito() {
   const fid = state.usuario && state.usuario.favorito_puesto_id;
   if (!fid) {
-    alert("Marca tu puesto con ★ en cualquier mesa");
+    alert(t("Marca tu puesto con ★ en cualquier mesa"));
     return;
   }
   const p = (state.puestos || []).find(x => x.id === fid);
   if (!p || !p.activo) {
-    alert("Tu puesto ya no está disponible");
+    alert(t("Tu puesto ya no está disponible"));
     return;
   }
   const desk = groupDesks(state.puestos).find(d => d.ids.includes(fid));
@@ -1759,7 +1731,7 @@ async function saveReserva() {
     if (rep > 1) {
       await api("/api/reservas/recurrente", { method: "POST",
         json: { ...body, comentario: null, repeticiones: rep } });
-      alert(`Creadas ${rep} reservas semanales`);
+      alert(tf("Creadas {0} reservas semanales", rep));
     } else {
       await api("/api/reservas", { method: "POST", json: body });
     }
@@ -1771,7 +1743,7 @@ async function saveReserva() {
 }
 
 async function cancelReserva(id) {
-  if (!confirm("¿Cancelar esta reserva?")) return;
+  if (!confirm(t("¿Cancelar esta reserva?"))) return;
   try {
     await api(`/api/reservas/${id}/cancelar`, { method: "POST" });
     closeModal();
@@ -1783,6 +1755,7 @@ async function cancelReserva(id) {
 }
 
 /* ── Sesión persistente ── */
+applyI18n();
 (function restaurarSesion() {
   try {
     const t = localStorage.getItem("nido_token");

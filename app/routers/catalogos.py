@@ -259,14 +259,3 @@ def set_favorito(data: FavoritoIn, db: Session = Depends(get_db),
     usuario.favorito_puesto_id = data.puesto_id
     db.commit(); db.refresh(usuario)
     return usuario
-
-
-@router.get("/usuarios/buscar", response_model=list[UsuarioOut])
-def buscar_usuarios(q: str = "", db: Session = Depends(get_db), _=Depends(require_staff)):
-    q = (q or "").strip()
-    if not q:
-        return []
-    like = f"%{q}%"
-    return (db.query(Usuario)
-            .filter((Usuario.username.ilike(like)) | (Usuario.nombre.ilike(like)))
-            .order_by(Usuario.nombre).limit(20).all())
